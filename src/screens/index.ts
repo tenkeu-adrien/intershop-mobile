@@ -1,0 +1,20 @@
+// Export all screens for easy imports
+export { default as HomeScreen } from './HomeScreen';
+export { default as CategoriesScreen } from './CategoriesScreen';
+export { default as ChatScreen } from './ChatScreen';
+export { default as CartScreen } from './CartScreen';
+export { default as ProfileScreen } from './ProfileScreen';
+export { default as LoginScreen } from './LoginScreen';
+export { default as RegisterScreen } from './RegisterScreen';
+export { default as EmailVerificationScreen } from './EmailVerificationScreen';
+export { default as PhoneVerificationScreen } from './PhoneVerificationScreen';
+export { default as ForgotPasswordScreen } from './ForgotPasswordScreen';
+export { default as PendingApprovalScreen } from './PendingApprovalScreen';
+export { default as AdminDashboardScreen } from './AdminDashboardScreen';
+export { default as FournisseurDashboardScreen } from './FournisseurDashboardScreen';
+export { default as MarketisteDashboardScreen } from './MarketisteDashboardScreen';
+export { default as ClientDashboardScreen } from './ClientDashboardScreen';
+export { default as ProductsScreen } from './ProductsScreen';
+export { default as ProductDetailScreen } from './ProductDetailScreen';
+export { default as RestaurantsScreen } from './RestaurantsScreen';
+export { default as HotelsScreen } from './HotelsScreen';
