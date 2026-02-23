@@ -9,10 +9,24 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
+import { useNotificationsStore } from '../../src/store/notificationsStore';
+import { useEffect } from 'react';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, signOut } = useAuthStore();
+  const { unreadCount, fetchUnreadCount } = useNotificationsStore();
+
+  useEffect(() => {
+    if (user) {
+      fetchUnreadCount(user.id);
+      // Poll every 30 seconds
+      const interval = setInterval(() => {
+        fetchUnreadCount(user.id);
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   const handleSignOut = () => {
     Alert.alert(
@@ -82,6 +96,19 @@ export default function ProfileScreen() {
 
       {/* Menu Items */}
       <View style={styles.menuSection}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/notifications')}>
+          <View style={styles.menuItemLeft}>
+            <Ionicons name="notifications" size={24} color="#8B5CF6" />
+            <Text style={styles.menuItemText}>Notifications</Text>
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+              </View>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/wallet')}>
           <View style={styles.menuItemLeft}>
             <Ionicons name="wallet" size={24} color="#10B981" />
@@ -266,5 +293,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#111827',
     marginLeft: 12,
+  },
+  badge: {
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+    paddingHorizontal: 6,
+  },
+  badgeText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: 'bold',
   },
 });

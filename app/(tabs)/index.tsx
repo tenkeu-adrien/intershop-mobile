@@ -41,15 +41,46 @@ export default function HomeScreen() {
 
   const loadServiceSections = async () => {
     try {
-      // Utiliser l'API backend au lieu de Firebase direct
-      // Pour éviter les erreurs d'initialisation Firebase
       console.log('📡 Loading service sections...');
       
-      // Pour l'instant, on laisse vide - les sections seront chargées via l'API
-      // ou on peut les charger depuis le store productsStore
-      setRestaurants([]);
-      setHotels([]);
-      setDatingProfiles([]);
+      // Charger restaurants
+      try {
+        const restaurantsRes = await api.get('/api/mobile/restaurants', {
+          params: { limit: 10 }
+        });
+        if (restaurantsRes.data?.success) {
+          setRestaurants(restaurantsRes.data.restaurants);
+          console.log('✅ Restaurants loaded:', restaurantsRes.data.restaurants.length);
+        }
+      } catch (error) {
+        console.error('Error loading restaurants:', error);
+      }
+      
+      // Charger hôtels
+      try {
+        const hotelsRes = await api.get('/api/mobile/hotels', {
+          params: { limit: 10 }
+        });
+        if (hotelsRes.data?.success) {
+          setHotels(hotelsRes.data.hotels);
+          console.log('✅ Hotels loaded:', hotelsRes.data.hotels.length);
+        }
+      } catch (error) {
+        console.error('Error loading hotels:', error);
+      }
+      
+      // Charger profils rencontres
+      try {
+        const datingRes = await api.get('/api/mobile/dating', {
+          params: { limit: 10 }
+        });
+        if (datingRes.data?.success) {
+          setDatingProfiles(datingRes.data.profiles);
+          console.log('✅ Dating profiles loaded:', datingRes.data.profiles.length);
+        }
+      } catch (error) {
+        console.error('Error loading dating profiles:', error);
+      }
     } catch (error) {
       console.error('Error loading service sections:', error);
     }
@@ -146,7 +177,7 @@ export default function HomeScreen() {
         )}
 
         {/* Sales badge pour deals */}
-        {activeSection === 'deals' && item.sales && (
+        {activeSection === 'deals' && item.sales && item.sales > 0 && (
           <View style={styles.salesBadge}>
             <Text style={styles.salesText}>{item.sales}+ vendus</Text>
           </View>
@@ -166,7 +197,7 @@ export default function HomeScreen() {
         <Text style={styles.productPrice}>
           {formatPrice(convertPrice(item.prices?.[0]?.price || 0))}
         </Text>
-        {item.moq && (
+        {item.moq && item.moq > 0 && (
           <Text style={styles.productMoq}>MOQ: {item.moq}</Text>
         )}
       </View>

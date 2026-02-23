@@ -480,6 +480,128 @@ export const verificationAPI = {
 };
 
 // ============================================
+// NOTIFICATIONS API
+// ============================================
+
+export const notificationsAPI = {
+  /**
+   * Récupérer les notifications
+   */
+  getAll: async (userId: string, limit: number = 50) => {
+    const response = await axiosInstance.get('/api/mobile/notifications', {
+      params: { userId, action: 'list', limit },
+    });
+    return response.data;
+  },
+
+  /**
+   * Récupérer le nombre de notifications non lues
+   */
+  getUnreadCount: async (userId: string) => {
+    const response = await axiosInstance.get('/api/mobile/notifications', {
+      params: { userId, action: 'unreadCount' },
+    });
+    return response.data;
+  },
+
+  /**
+   * Marquer une notification comme lue
+   */
+  markAsRead: async (notificationId: string) => {
+    const response = await axiosInstance.post('/api/mobile/notifications', {
+      action: 'markAsRead',
+      notificationId,
+    });
+    return response.data;
+  },
+
+  /**
+   * Marquer toutes les notifications comme lues
+   */
+  markAllAsRead: async (userId: string) => {
+    const response = await axiosInstance.post('/api/mobile/notifications', {
+      action: 'markAllAsRead',
+      userId,
+    });
+    return response.data;
+  },
+};
+
+// ============================================
+// RESTAURANTS API
+// ============================================
+
+export const restaurantsAPI = {
+  /**
+   * Récupérer les restaurants
+   */
+  getAll: async (params?: {
+    city?: string;
+    priceRange?: string;
+    features?: string[];
+    lat?: number;
+    lng?: number;
+    maxDistance?: number;
+  }) => {
+    const queryParams: any = {};
+    if (params?.city) queryParams.city = params.city;
+    if (params?.priceRange) queryParams.priceRange = params.priceRange;
+    if (params?.features) queryParams.features = params.features.join(',');
+    if (params?.lat) queryParams.lat = params.lat;
+    if (params?.lng) queryParams.lng = params.lng;
+    if (params?.maxDistance) queryParams.maxDistance = params.maxDistance;
+
+    const response = await axiosInstance.get('/api/mobile/restaurants', {
+      params: queryParams,
+    });
+    return response.data;
+  },
+};
+
+// ============================================
+// HOTELS API
+// ============================================
+
+export const hotelsAPI = {
+  /**
+   * Récupérer les hôtels
+   */
+  getAll: async (params?: {
+    city?: string;
+    features?: string[];
+    lat?: number;
+    lng?: number;
+    maxDistance?: number;
+  }) => {
+    const queryParams: any = {};
+    if (params?.city) queryParams.city = params.city;
+    if (params?.features) queryParams.features = params.features.join(',');
+    if (params?.lat) queryParams.lat = params.lat;
+    if (params?.lng) queryParams.lng = params.lng;
+    if (params?.maxDistance) queryParams.maxDistance = params.maxDistance;
+
+    const response = await axiosInstance.get('/api/mobile/hotels', {
+      params: queryParams,
+    });
+    return response.data;
+  },
+};
+
+// ============================================
+// DATING API
+// ============================================
+
+export const datingAPI = {
+  /**
+   * Récupérer les profils de rencontre
+   */
+  getAll: async () => {
+    const response = await axiosInstance.get('/api/mobile/dating');
+    return response.data;
+  },
+};
+
+// ============================================
 // EXPORT
 // ============================================
 
@@ -498,4 +620,8 @@ export default {
   paymentMethods: paymentMethodsAPI,
   users: usersAPI,
   verification: verificationAPI,
+  notifications: notificationsAPI,
+  restaurants: restaurantsAPI,
+  hotels: hotelsAPI,
+  dating: datingAPI,
 };

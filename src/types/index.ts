@@ -203,3 +203,38 @@ export interface TransferData {
   description?: string;
   pin: string;
 }
+
+// Notification Types
+export type NotificationType = 
+  | 'deposit_requested'
+  | 'deposit_approved'
+  | 'deposit_rejected'
+  | 'withdrawal_requested'
+  | 'withdrawal_approved'
+  | 'withdrawal_rejected'
+  | 'transfer_received'
+  | 'transfer_sent'
+  | 'order_placed'
+  | 'order_confirmed'
+  | 'order_shipped'
+  | 'order_delivered'
+  | 'order_cancelled'
+  | 'contact_request'
+  | 'admin_approval'
+  | 'license_expiring'
+  | 'transaction_reminder'
+  | 'general';
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  data?: any;
+  isRead: boolean;
+  channel?: 'email' | 'in_app' | 'both';
+  emailSent?: boolean;
+  emailSentAt?: Date;
+  createdAt: Date;
+}
