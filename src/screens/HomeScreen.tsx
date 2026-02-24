@@ -5,12 +5,14 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Image,
   StyleSheet,
   Dimensions,
   RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
-import { IoSearch, IoLocationSharp, IoStar } from 'react-icons/io5';
+import { Image } from 'expo-image';
+import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { useProductsStore } from '../store/productsStore';
 import { useAuthStore } from '../store/authStore';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen({ navigation }: any) {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { featuredProducts, loading, fetchFeaturedProducts } = useProductsStore();
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,7 +38,7 @@ export default function HomeScreen({ navigation }: any) {
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      navigation.navigate('SearchResults', { query: searchQuery });
+      navigation.navigate('ProductsList', { search: searchQuery });
     }
   };
 
@@ -43,7 +46,7 @@ export default function HomeScreen({ navigation }: any) {
     <ScrollView
       style={styles.container}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#10B981']} />
       }
     >
       {/* Header avec gradient */}
@@ -55,23 +58,23 @@ export default function HomeScreen({ navigation }: any) {
       >
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.greeting}>Bonjour 👋</Text>
+            <Text style={styles.greeting}>{t('home.greeting', 'Bonjour')} 👋</Text>
             <Text style={styles.userName}>
-              {user?.displayName || 'Invité'}
+              {user?.displayName || t('auth.guest', 'Invité')}
             </Text>
           </View>
           <TouchableOpacity style={styles.locationButton}>
-            <IoLocationSharp size={20} color="#1F2937" />
+            <Ionicons name="location" size={20} color="#1F2937" />
             <Text style={styles.locationText}>Cameroun</Text>
           </TouchableOpacity>
         </View>
 
         {/* Barre de recherche */}
         <View style={styles.searchContainer}>
-          <IoSearch size={20} color="#9CA3AF" style={styles.searchIcon} />
+          <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Rechercher des produits..."
+            placeholder={t('home.search_placeholder', 'Rechercher sur InterShop')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onSubmitEditing={handleSearch}
@@ -82,46 +85,46 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* Catégories rapides */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Catégories</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <TouchableOpacity 
+        <Text style={styles.sectionTitle}>{t('home.categories', 'Catégories')}</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScroll}>
+          <TouchableOpacity
             style={styles.categoryCard}
-            onPress={() => navigation.navigate('Catégories', { category: 'ecommerce' })}
+            onPress={() => navigation.navigate('ProductsList', { category: 'ecommerce' })}
           >
             <View style={[styles.categoryIcon, { backgroundColor: '#DBEAFE' }]}>
               <Text style={styles.categoryEmoji}>🛍️</Text>
             </View>
-            <Text style={styles.categoryText}>E-commerce</Text>
+            <Text style={styles.categoryText}>{t('home.ecommerce', 'E-commerce')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.categoryCard}
-            onPress={() => navigation.navigate('Catégories', { category: 'restaurant' })}
+            onPress={() => navigation.navigate('ProductsList', { category: 'restaurant' })}
           >
             <View style={[styles.categoryIcon, { backgroundColor: '#FED7AA' }]}>
               <Text style={styles.categoryEmoji}>🍽️</Text>
             </View>
-            <Text style={styles.categoryText}>Restaurants</Text>
+            <Text style={styles.categoryText}>{t('home.restaurants', 'Restaurants')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.categoryCard}
-            onPress={() => navigation.navigate('Catégories', { category: 'hotel' })}
+            onPress={() => navigation.navigate('ProductsList', { category: 'hotel' })}
           >
             <View style={[styles.categoryIcon, { backgroundColor: '#E9D5FF' }]}>
               <Text style={styles.categoryEmoji}>🏨</Text>
             </View>
-            <Text style={styles.categoryText}>Hôtels</Text>
+            <Text style={styles.categoryText}>{t('home.hotels', 'Hôtels')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.categoryCard}
-            onPress={() => navigation.navigate('Catégories', { category: 'dating' })}
+            onPress={() => navigation.navigate('ProductsList', { category: 'dating' })}
           >
             <View style={[styles.categoryIcon, { backgroundColor: '#FBCFE8' }]}>
               <Text style={styles.categoryEmoji}>💕</Text>
             </View>
-            <Text style={styles.categoryText}>Rencontres</Text>
+            <Text style={styles.categoryText}>{t('home.dating', 'Dating')}</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -129,15 +132,15 @@ export default function HomeScreen({ navigation }: any) {
       {/* Produits en vedette */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Produits en vedette</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Catégories')}>
-            <Text style={styles.seeAllText}>Voir tout</Text>
+          <Text style={styles.sectionTitle}>{t('home.featured', 'Produits en vedette')}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('ProductsList')}>
+            <Text style={styles.seeAllText}>{t('common.see_all', 'Voir tout')}</Text>
           </TouchableOpacity>
         </View>
 
-        {loading ? (
+        {loading && featuredProducts.length === 0 ? (
           <View style={styles.loadingContainer}>
-            <Text>Chargement...</Text>
+            <ActivityIndicator size="large" color="#10B981" />
           </View>
         ) : (
           <View style={styles.productsGrid}>
@@ -150,19 +153,21 @@ export default function HomeScreen({ navigation }: any) {
                 <Image
                   source={{ uri: product.images[0] || 'https://via.placeholder.com/150' }}
                   style={styles.productImage}
+                  contentFit="cover"
+                  transition={200}
                 />
                 <View style={styles.productInfo}>
                   <Text style={styles.productName} numberOfLines={2}>
                     {product.name}
                   </Text>
                   <View style={styles.productRating}>
-                    <IoStar size={14} color="#FBBF24" />
+                    <Ionicons name="star" size={14} color="#FBBF24" />
                     <Text style={styles.ratingText}>
                       {product.rating.toFixed(1)} ({product.reviewCount})
                     </Text>
                   </View>
                   <Text style={styles.productPrice}>
-                    {product.prices[0]?.price.toLocaleString('fr-FR')} FCFA
+                    {product.prices[0]?.price.toLocaleString()} FCFA
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -177,18 +182,19 @@ export default function HomeScreen({ navigation }: any) {
           colors={['#10B981', '#059669']}
           style={styles.promoBanner}
         >
-          <Text style={styles.promoTitle}>🎉 Offres spéciales</Text>
+          <Text style={styles.promoTitle}>🎉 {t('home.promo_title', 'Offres spéciales')}</Text>
           <Text style={styles.promoText}>
-            Jusqu'à 50% de réduction sur une sélection de produits
+            {t('home.promo_subtitle', "Jusqu'à 50% de réduction sur une sélection de produits")}
           </Text>
           <TouchableOpacity style={styles.promoButton}>
-            <Text style={styles.promoButtonText}>Découvrir</Text>
+            <Text style={styles.promoButtonText}>{t('common.discover', 'Découvrir')}</Text>
           </TouchableOpacity>
         </LinearGradient>
       </View>
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

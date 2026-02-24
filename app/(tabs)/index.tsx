@@ -14,11 +14,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useProductsStore } from '../../src/store/productsStore';
-import { useAuthStore } from '../../src/store/authStore';
 import { useCurrencyStore } from '../../src/store/currencyStore';
 import { ProductCardSkeleton } from '../../src/components/Skeleton';
 import CategorySelector from '../../src/components/CategorySelector';
 import { Product } from '../../src/types';
+import api from '../../src/services/api';
 
 const { width } = Dimensions.get('window');
 
@@ -48,7 +48,7 @@ export default function HomeScreen() {
         const restaurantsRes = await api.get('/api/mobile/restaurants', {
           params: { limit: 10 }
         });
-        if (restaurantsRes.data?.success) {
+        if (restaurantsRes.data?.success && Array.isArray(restaurantsRes.data.restaurants)) {
           setRestaurants(restaurantsRes.data.restaurants);
           console.log('✅ Restaurants loaded:', restaurantsRes.data.restaurants.length);
         }
@@ -61,7 +61,7 @@ export default function HomeScreen() {
         const hotelsRes = await api.get('/api/mobile/hotels', {
           params: { limit: 10 }
         });
-        if (hotelsRes.data?.success) {
+        if (hotelsRes.data?.success && Array.isArray(hotelsRes.data.hotels)) {
           setHotels(hotelsRes.data.hotels);
           console.log('✅ Hotels loaded:', hotelsRes.data.hotels.length);
         }
@@ -74,7 +74,7 @@ export default function HomeScreen() {
         const datingRes = await api.get('/api/mobile/dating', {
           params: { limit: 10 }
         });
-        if (datingRes.data?.success) {
+        if (datingRes.data?.success && Array.isArray(datingRes.data.profiles)) {
           setDatingProfiles(datingRes.data.profiles);
           console.log('✅ Dating profiles loaded:', datingRes.data.profiles.length);
         }
@@ -89,6 +89,7 @@ export default function HomeScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchProducts();
+    await loadServiceSections();
     setRefreshing(false);
   };
 
@@ -172,14 +173,14 @@ export default function HomeScreen() {
         {/* Ranking badge pour top */}
         {activeSection === 'top' && index < 3 && (
           <View style={styles.rankBadge}>
-            <Text style={styles.rankText}>#{index + 1}</Text>
+            <Text style={styles.rankText}>#{String(index + 1)}</Text>
           </View>
         )}
 
         {/* Sales badge pour deals */}
         {activeSection === 'deals' && item.sales && item.sales > 0 && (
           <View style={styles.salesBadge}>
-            <Text style={styles.salesText}>{item.sales}+ vendus</Text>
+            <Text style={styles.salesText}>{String(item.sales)}+ vendus</Text>
           </View>
         )}
       </View>
@@ -191,14 +192,14 @@ export default function HomeScreen() {
         <View style={styles.productRating}>
           <Ionicons name="star" size={14} color="#FBBF24" />
           <Text style={styles.ratingText}>
-            {(item.rating || 0).toFixed(1)} ({item.reviewCount || 0})
+            {String((item.rating || 0).toFixed(1))} ({String(item.reviewCount || 0)})
           </Text>
         </View>
         <Text style={styles.productPrice}>
           {formatPrice(convertPrice(item.prices?.[0]?.price || 0))}
         </Text>
         {item.moq && item.moq > 0 && (
-          <Text style={styles.productMoq}>MOQ: {item.moq}</Text>
+          <Text style={styles.productMoq}>MOQ: {String(item.moq)}</Text>
         )}
       </View>
     </TouchableOpacity>

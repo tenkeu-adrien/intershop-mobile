@@ -3,15 +3,16 @@ import {
   View,
   Text,
   FlatList,
-  Image,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
   Dimensions,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useProductsStore } from '../../src/store/productsStore';
 import { Product } from '../../src/types';
 
@@ -19,10 +20,11 @@ const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
 
 export default function ProductsListScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams();
   const { products, loading, hasMore, fetchProducts, loadMore } = useProductsStore();
-  
+
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
@@ -33,9 +35,7 @@ export default function ProductsListScreen() {
 
   const loadInitialProducts = async () => {
     console.log('🔍 [Products List] Loading initial products...');
-    console.log('📋 [Products List] Category:', params.category);
-    console.log('📋 [Products List] Search:', params.search);
-    
+
     await fetchProducts({
       category: params.category as string,
       search: params.search as string,
@@ -43,7 +43,6 @@ export default function ProductsListScreen() {
   };
 
   const handleRefresh = async () => {
-    console.log('🔄 [Products List] Refreshing...');
     setRefreshing(true);
     await loadInitialProducts();
     setRefreshing(false);
@@ -51,11 +50,9 @@ export default function ProductsListScreen() {
 
   const handleLoadMore = async () => {
     if (loadingMore || loading || !hasMore) {
-      console.log('⏸️ [Products List] Skip load more:', { loadingMore, loading, hasMore });
       return;
     }
 
-    console.log('📥 [Products List] Loading more products...');
     setLoadingMore(true);
     await loadMore();
     setLoadingMore(false);
@@ -70,13 +67,14 @@ export default function ProductsListScreen() {
       <Image
         source={{ uri: item.images[0] || 'https://via.placeholder.com/200' }}
         style={styles.productImage}
-        resizeMode="cover"
+        contentFit="cover"
+        transition={300}
       />
-      
+
       {/* Badge si nouveau */}
       {isNew(item.createdAt) && (
         <View style={styles.newBadge}>
-          <Text style={styles.newBadgeText}>Nouveau</Text>
+          <Text style={styles.newBadgeText}>{t('products.new', 'Nouveau')}</Text>
         </View>
       )}
 
@@ -95,22 +93,22 @@ export default function ProductsListScreen() {
         {/* Price */}
         <View style={styles.priceContainer}>
           <Text style={styles.price}>
-            {item.prices[0]?.price.toLocaleString('fr-FR')} FCFA
+            {item.prices[0]?.price.toLocaleString()} FCFA
           </Text>
           {item.prices[0]?.originalPrice && item.prices[0].originalPrice > item.prices[0].price && (
             <Text style={styles.originalPrice}>
-              {item.prices[0].originalPrice.toLocaleString('fr-FR')}
+              {item.prices[0].originalPrice.toLocaleString()}
             </Text>
           )}
         </View>
 
         {/* MOQ */}
         {item.moq > 1 && (
-          <Text style={styles.moq}>Min: {item.moq} unités</Text>
+          <Text style={styles.moq}>{t('products.min_order', { count: item.moq })}</Text>
         )}
 
         {/* Sales */}
-        <Text style={styles.sales}>{item.sales} vendus</Text>
+        <Text style={styles.sales}>{t('products.units_sold', { count: item.sales })}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -121,7 +119,7 @@ export default function ProductsListScreen() {
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color="#10B981" />
-        <Text style={styles.footerLoaderText}>Chargement...</Text>
+        <Text style={styles.footerLoaderText}>{t('common.loading')}...</Text>
       </View>
     );
   };
@@ -132,17 +130,17 @@ export default function ProductsListScreen() {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="cube-outline" size={64} color="#D1D5DB" />
-        <Text style={styles.emptyTitle}>Aucun produit trouvé</Text>
+        <Text style={styles.emptyTitle}>{t('products.none_found', 'Aucun produit trouvé')}</Text>
         <Text style={styles.emptyText}>
           {params.search
-            ? 'Essayez une autre recherche'
-            : 'Aucun produit disponible pour le moment'}
+            ? t('products.try_another_search', 'Essayez une autre recherche')
+            : t('products.no_products_yet', 'Aucun produit disponible pour le moment')}
         </Text>
         <TouchableOpacity
           style={styles.emptyButton}
           onPress={handleRefresh}
         >
-          <Text style={styles.emptyButtonText}>Actualiser</Text>
+          <Text style={styles.emptyButtonText}>{t('common.refresh')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -153,7 +151,7 @@ export default function ProductsListScreen() {
     const date = createdAt instanceof Date ? createdAt : new Date(createdAt);
     const now = new Date();
     const diffDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
-    return diffDays <= 7; // Nouveau si créé il y a moins de 7 jours
+    return diffDays <= 7;
   };
 
   return (
@@ -166,17 +164,17 @@ export default function ProductsListScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        
+
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>
+          <Text style={styles.headerTitle} numberOfLines={1}>
             {params.search
-              ? `Recherche: "${params.search}"`
+              ? t('products.search_result', { query: params.search })
               : params.category
-              ? `Catégorie: ${params.category}`
-              : 'Tous les produits'}
+                ? t(`categories.${params.category}`, params.category as string)
+                : t('products.all_products')}
           </Text>
           <Text style={styles.headerSubtitle}>
-            {products.length} produit{products.length > 1 ? 's' : ''}
+            {t('products.count', { count: products.length })}
           </Text>
         </View>
       </View>
@@ -211,7 +209,7 @@ export default function ProductsListScreen() {
       {loading && products.length === 0 && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#10B981" />
-          <Text style={styles.loadingText}>Chargement des produits...</Text>
+          <Text style={styles.loadingText}>{t('products.loading_products')}</Text>
         </View>
       )}
     </View>
@@ -398,3 +396,5 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
 });
+
+

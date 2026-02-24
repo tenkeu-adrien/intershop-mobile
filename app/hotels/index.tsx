@@ -6,54 +6,30 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
   TextInput,
   SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { api } from '../../src/services/api';
-import { Product } from '../../src/types';
+import { useHotelsStore } from '../../src/store/hotelsStore';
+import { HotelCardSkeleton } from '../../src/components/Skeleton';
 
 export default function HotelsPage() {
   const router = useRouter();
-  const [hotels, setHotels] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { hotels, loading, fetchHotels } = useHotelsStore();
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [starFilter, setStarFilter] = useState<number | null>(null);
 
   useEffect(() => {
-    loadHotels();
+    fetchHotels({ limit: 50 });
   }, []);
-
-  const loadHotels = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/api/mobile/hotels', {
-        params: {
-          limit: 50
-        }
-      });
-      
-      if (response.data && response.data.success && Array.isArray(response.data.hotels)) {
-        setHotels(response.data.hotels);
-      } else {
-        setHotels([]);
-      }
-    } catch (error) {
-      console.error('Error loading hotels:', error);
-      setHotels([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadHotels();
+    await fetchHotels({ limit: 50 });
     setRefreshing(false);
   };
 
@@ -123,9 +99,22 @@ export default function HotelsPage() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#8b5cf6" />
-        <Text style={styles.loadingText}>Chargement des hôtels...</Text>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#111827" />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
+            <Ionicons name="bed" size={24} color="#8b5cf6" />
+            <Text style={styles.headerTitle}>Hôtels</Text>
+          </View>
+          <View style={styles.headerButton} />
+        </View>
+        <View style={styles.listContainer}>
+          <HotelCardSkeleton />
+          <HotelCardSkeleton />
+          <HotelCardSkeleton />
+        </View>
       </SafeAreaView>
     );
   }

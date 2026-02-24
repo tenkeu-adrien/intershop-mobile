@@ -12,14 +12,16 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { signIn, loading, error, clearError } = useAuthStore();
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -31,12 +33,12 @@ export default function LoginScreen() {
 
     // Validation
     if (!email || !password) {
-      setLocalError('Veuillez remplir tous les champs');
+      setLocalError(t('common.error_fields_required', 'Veuillez remplir tous les champs'));
       return;
     }
 
     if (!email.includes('@')) {
-      setLocalError('Email invalide');
+      setLocalError(t('auth.invalid_email', 'Email invalide'));
       return;
     }
 
@@ -45,9 +47,9 @@ export default function LoginScreen() {
       // Rediriger vers l'accueil après connexion réussie
       router.replace('/(tabs)');
     } catch (err: any) {
-      const errorMessage = err.message || 'Erreur de connexion';
+      const errorMessage = err.message || t('common.error_occurred', 'Erreur de connexion');
       setLocalError(errorMessage);
-      Alert.alert('Erreur', errorMessage);
+      Alert.alert(t('common.error'), errorMessage);
     }
   };
 
@@ -69,7 +71,7 @@ export default function LoginScreen() {
         >
           <Text style={styles.logo}>🛍️</Text>
           <Text style={styles.title}>InterShop</Text>
-          <Text style={styles.subtitle}>Connectez-vous à votre compte</Text>
+          <Text style={styles.subtitle}>{t('auth.subtitle_login', 'Connectez-vous à votre compte')}</Text>
         </LinearGradient>
 
         {/* Formulaire */}
@@ -81,7 +83,7 @@ export default function LoginScreen() {
             </View>
             <TextInput
               style={styles.input}
-              placeholder="Email"
+              placeholder={t('auth.email')}
               placeholderTextColor="#9CA3AF"
               value={email}
               onChangeText={setEmail}
@@ -98,7 +100,7 @@ export default function LoginScreen() {
             </View>
             <TextInput
               style={styles.input}
-              placeholder="Mot de passe"
+              placeholder={t('auth.password')}
               placeholderTextColor="#9CA3AF"
               value={password}
               onChangeText={setPassword}
@@ -109,20 +111,20 @@ export default function LoginScreen() {
               style={styles.eyeIcon}
               onPress={() => setShowPassword(!showPassword)}
             >
-              <Ionicons 
-                name={showPassword ? "eye-off" : "eye"} 
-                size={20} 
-                color="#9CA3AF" 
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={20}
+                color="#9CA3AF"
               />
             </TouchableOpacity>
           </View>
 
           {/* Mot de passe oublié */}
           <TouchableOpacity
-            onPress={() => Alert.alert('Info', 'Fonctionnalité à venir')}
+            onPress={() => Alert.alert(t('common.info'), t('common.coming_soon', 'Fonctionnalité à venir'))}
             style={styles.forgotPassword}
           >
-            <Text style={styles.forgotPasswordText}>Mot de passe oublié?</Text>
+            <Text style={styles.forgotPasswordText}>{t('auth.forgot_password')}</Text>
           </TouchableOpacity>
 
           {/* Erreur */}
@@ -147,16 +149,16 @@ export default function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text style={styles.loginButtonText}>Se connecter</Text>
+                <Text style={styles.loginButtonText}>{t('auth.login')}</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>
 
           {/* Lien d'inscription */}
           <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Pas encore de compte? </Text>
+            <Text style={styles.signupText}>{t('auth.no_account')} </Text>
             <TouchableOpacity onPress={() => router.push('/register')}>
-              <Text style={styles.signupLink}>S'inscrire</Text>
+              <Text style={styles.signupLink}>{t('auth.register')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -270,3 +272,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+

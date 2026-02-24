@@ -1,17 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
-import { 
-  IoStarOutline,
-  IoStar,
-  IoCartOutline,
-  IoHeartOutline,
-  IoShareOutline,
-  IoTruckOutline,
-  IoShieldCheckmarkOutline,
-  IoChatbubbleOutline,
-  IoAddOutline,
-  IoRemoveOutline
-} from 'react-icons/io5';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
+import { Image } from 'expo-image';
+import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { useCartStore } from '../store/cartStore';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -19,9 +10,10 @@ import { db } from '../config/firebase';
 const { width } = Dimensions.get('window');
 
 export default function ProductDetailScreen({ route, navigation }: any) {
+  const { t } = useTranslation();
   const { productId } = route.params;
   const { addItem } = useCartStore();
-  
+
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -39,36 +31,31 @@ export default function ProductDetailScreen({ route, navigation }: any) {
     }
   }, [product]);
 
-  const getProduct = async (productId: string) => {
-    const productDoc = await getDoc(doc(db, 'products', productId));
-    if (productDoc.exists()) {
-      return { id: productDoc.id, ...productDoc.data() };
-    }
-    return null;
-  };
-
   const loadProduct = async () => {
     try {
-      const productData = await getProduct(productId);
-      
-      if (!productData) {
+      const productDoc = await getDoc(doc(db, 'products', productId));
+
+      if (!productDoc.exists()) {
         navigation.goBack();
         return;
       }
-      
+
+      const productData = { id: productDoc.id, ...productDoc.data() } as any;
       setProduct(productData);
 
-      try {
-        const fournisseurDoc = await getDoc(doc(db, 'users', productData.fournisseurId));
-        if (fournisseurDoc.exists()) {
-          const fournisseurData = fournisseurDoc.data();
-          setFournisseur({
-            name: fournisseurData.displayName || fournisseurData.shopName || 'Vendeur',
-            photo: fournisseurData.photoURL || fournisseurData.shopLogo,
-          });
+      if (productData.fournisseurId) {
+        try {
+          const fournisseurDoc = await getDoc(doc(db, 'users', productData.fournisseurId));
+          if (fournisseurDoc.exists()) {
+            const fournisseurData = fournisseurDoc.data();
+            setFournisseur({
+              name: fournisseurData.displayName || fournisseurData.shopName || t('auth.vendor', 'Fournisseur'),
+              photo: fournisseurData.photoURL || fournisseurData.shopLogo,
+            });
+          }
+        } catch (error) {
+          console.error('Error loading fournisseur:', error);
         }
-      } catch (error) {
-        console.error('Error loading fournisseur:', error);
       }
     } catch (error) {
       console.error('Error loading product:', error);
@@ -82,7 +69,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
     if (!product) return;
 
     const currentPrice = product.prices[selectedPriceTier];
-    
+
     addItem({
       productId: product.id,
       name: product.name,
@@ -99,14 +86,13 @@ export default function ProductDetailScreen({ route, navigation }: any) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Chargement...</Text>
+        <ActivityIndicator size="large" color="#10B981" />
+        <Text style={styles.loadingText}>{t('common.loading', 'Chargement...')}</Text>
       </View>
     );
   }
 
-  if (!product) {
-    return null;
-  }
+  if (!product) return null;
 
   const currentPrice = product.prices[selectedPriceTier];
   const totalPrice = currentPrice.price * quantity;
@@ -116,14 +102,15 @@ export default function ProductDetailScreen({ route, navigation }: any) {
       {/* Image Gallery */}
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: product.images[selectedImage] }}
+          source={{ uri: product.images[selectedImage] || 'https://via.placeholder.com/400' }}
           style={styles.mainImage}
-          resizeMode="cover"
+          contentFit="cover"
+          transition={300}
         />
-        
+
         {/* Thumbnails */}
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.thumbnailsContainer}
         >
@@ -139,7 +126,8 @@ export default function ProductDetailScreen({ route, navigation }: any) {
               <Image
                 source={{ uri: image }}
                 style={styles.thumbnailImage}
-                resizeMode="cover"
+                contentFit="cover"
+                transition={200}
               />
             </TouchableOpacity>
           ))}
@@ -154,34 +142,35 @@ export default function ProductDetailScreen({ route, navigation }: any) {
         <View style={styles.ratingContainer}>
           <View style={styles.stars}>
             {[...Array(5)].map((_, i) => (
-              i < Math.floor(product.rating) ? (
-                <IoStar key={i} size={18} color="#FBBF24" />
-              ) : (
-                <IoStarOutline key={i} size={18} color="#D1D5DB" />
-              )
+              <Ionicons
+                key={i}
+                name={i < Math.floor(product.rating || 0) ? "star" : "star-outline"}
+                size={18}
+                color={i < Math.floor(product.rating || 0) ? "#FBBF24" : "#D1D5DB"}
+              />
             ))}
           </View>
           <Text style={styles.ratingText}>
-            {product.rating.toFixed(1)} ({product.reviewCount} avis)
+            {(product.rating || 0).toFixed(1)} ({product.reviewCount || 0} {t('products.reviews', 'avis')})
           </Text>
-          <Text style={styles.salesText}>• {product.sales} vendus</Text>
+          <Text style={styles.salesText}>• {product.sales || 0} {t('products.sold', 'vendus')}</Text>
         </View>
 
         {/* Price */}
         <View style={styles.priceContainer}>
-          <Text style={styles.price}>${currentPrice.price}</Text>
-          <Text style={styles.priceUnit}>/ unité</Text>
+          <Text style={styles.price}>{currentPrice.price.toLocaleString()} FCFA</Text>
+          <Text style={styles.priceUnit}>{t('products.per_unit', 'par unité')}</Text>
         </View>
         {product.moq > 1 && (
           <Text style={styles.moqText}>
-            Quantité minimum: {product.moq} unités
+            {t('products.moq', 'Quantité min.')}: {product.moq} unités
           </Text>
         )}
 
         {/* Price Tiers */}
-        {product.prices.length > 1 && (
+        {product.prices && product.prices.length > 1 && (
           <View style={styles.priceTiersContainer}>
-            <Text style={styles.sectionTitle}>Prix par quantité:</Text>
+            <Text style={styles.sectionTitle}>{t('products.price_tiers', 'Prix par quantité')}:</Text>
             <View style={styles.priceTiersGrid}>
               {product.prices.map((tier: any, index: number) => (
                 <TouchableOpacity
@@ -193,9 +182,9 @@ export default function ProductDetailScreen({ route, navigation }: any) {
                   ]}
                 >
                   <Text style={styles.priceTierQuantity}>
-                    {tier.minQuantity}{tier.maxQuantity ? `-${tier.maxQuantity}` : '+'} unités
+                    {tier.minQuantity}{tier.maxQuantity ? `-${tier.maxQuantity}` : '+'} {t('products.units', 'unités')}
                   </Text>
-                  <Text style={styles.priceTierPrice}>${tier.price}</Text>
+                  <Text style={styles.priceTierPrice}>{tier.price.toLocaleString()} FCFA</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -204,7 +193,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
 
         {/* Quantity Selector */}
         <View style={styles.quantityContainer}>
-          <Text style={styles.sectionTitle}>Quantité:</Text>
+          <Text style={styles.sectionTitle}>{t('cart.quantity', 'Quantité')}:</Text>
           <View style={styles.quantitySelector}>
             <TouchableOpacity
               onPress={() => setQuantity(Math.max(product.moq || 1, quantity - 1))}
@@ -214,26 +203,26 @@ export default function ProductDetailScreen({ route, navigation }: any) {
                 quantity <= (product.moq || 1) && styles.quantityButtonDisabled
               ]}
             >
-              <IoRemoveOutline size={20} color="#111827" />
+              <Ionicons name="remove" size={20} color="#111827" />
             </TouchableOpacity>
-            
+
             <Text style={styles.quantityValue}>{quantity}</Text>
-            
+
             <TouchableOpacity
               onPress={() => setQuantity(quantity + 1)}
-              disabled={quantity >= product.stock}
+              disabled={product.stock && quantity >= product.stock}
               style={[
                 styles.quantityButton,
-                quantity >= product.stock && styles.quantityButtonDisabled
+                product.stock && quantity >= product.stock && styles.quantityButtonDisabled
               ]}
             >
-              <IoAddOutline size={20} color="#111827" />
+              <Ionicons name="add" size={20} color="#111827" />
             </TouchableOpacity>
-            
-            <Text style={styles.stockText}>{product.stock} disponibles</Text>
+
+            <Text style={styles.stockText}>{product.stock || 0} {t('products.stock', 'en stock')}</Text>
           </View>
           <Text style={styles.totalPrice}>
-            Total: <Text style={styles.totalPriceValue}>${totalPrice.toFixed(2)}</Text>
+            {t('cart.total', 'Total')}: <Text style={styles.totalPriceValue}>{totalPrice.toLocaleString()} FCFA</Text>
           </Text>
         </View>
 
@@ -247,68 +236,70 @@ export default function ProductDetailScreen({ route, navigation }: any) {
               product.stock === 0 && styles.addToCartButtonDisabled
             ]}
           >
-            <IoCartOutline size={20} color="#fff" />
+            <Ionicons name="cart-outline" size={20} color="#fff" />
             <Text style={styles.addToCartText}>
-              {product.stock === 0 ? 'Rupture de stock' : 'Ajouter au panier'}
+              {product.stock === 0 ? t('products.out_of_stock', 'Rupture') : t('products.add_to_cart', 'Ajouter au panier')}
             </Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.iconButton}>
-            <IoHeartOutline size={24} color="#EF4444" />
+            <Ionicons name="heart-outline" size={24} color="#EF4444" />
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.iconButton}>
-            <IoShareOutline size={24} color="#6B7280" />
+            <Ionicons name="share-social-outline" size={24} color="#6B7280" />
           </TouchableOpacity>
         </View>
 
         {/* Features */}
         <View style={styles.featuresContainer}>
           <View style={styles.feature}>
-            <IoTruckOutline size={24} color="#10B981" />
-            <Text style={styles.featureText}>{product.deliveryTime || 'Livraison rapide'}</Text>
+            <Ionicons name="car-outline" size={24} color="#10B981" />
+            <Text style={styles.featureText}>{product.deliveryTime || t('products.delivery', 'Livraison')}</Text>
           </View>
           <View style={styles.feature}>
-            <IoShieldCheckmarkOutline size={24} color="#10B981" />
-            <Text style={styles.featureText}>Protection acheteur</Text>
+            <Ionicons name="shield-checkmark-outline" size={24} color="#10B981" />
+            <Text style={styles.featureText}>{t('products.buyer_protection', 'Protection')}</Text>
           </View>
           <View style={styles.feature}>
-            <IoChatbubbleOutline size={24} color="#10B981" />
-            <Text style={styles.featureText}>Support 24/7</Text>
+            <Ionicons name="chatbubble-outline" size={24} color="#10B981" />
+            <Text style={styles.featureText}>{t('products.support', 'Support 24/7')}</Text>
           </View>
         </View>
 
         {/* Description */}
         <View style={styles.descriptionContainer}>
-          <Text style={styles.sectionTitle}>Description du produit</Text>
+          <Text style={styles.sectionTitle}>{t('products.description', 'Description')}</Text>
           <Text style={styles.description}>{product.description}</Text>
         </View>
 
         {/* Details */}
         <View style={styles.detailsContainer}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Catégorie</Text>
-            <Text style={styles.detailValue}>{product.category}</Text>
+            <Text style={styles.detailLabel}>{t('common.category', 'Catégorie')}</Text>
+            <Text style={styles.detailValue}>{t(`categories.${product.category}`, product.category)}</Text>
           </View>
           {product.subcategory && (
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Sous-catégorie</Text>
+              <Text style={styles.detailLabel}>{t('common.subcategory', 'Sous-catégorie')}</Text>
               <Text style={styles.detailValue}>{product.subcategory}</Text>
             </View>
           )}
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Pays d'origine</Text>
+            <Text style={styles.detailLabel}>{t('products.origin', 'Pays d\'origine')}</Text>
             <Text style={styles.detailValue}>{product.country}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Stock</Text>
-            <Text style={styles.detailValue}>{product.stock} unités</Text>
+            <Text style={styles.detailLabel}>{t('products.stock_status', 'Stock')}</Text>
+            <Text style={styles.detailValue}>{product.stock || 0} {t('products.units', 'unités')}</Text>
           </View>
         </View>
       </View>
     </ScrollView>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   container: {

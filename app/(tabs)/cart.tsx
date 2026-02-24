@@ -12,12 +12,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCartStore } from '../../src/store/cartStore';
 import { useAuthStore } from '../../src/store/authStore';
+import { useCurrencyStore } from '../../src/store/currencyStore';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function CartScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { items, updateQuantity, removeFromCart, getTotal, loadCart } = useCartStore();
+  const { convertPrice, formatPrice } = useCurrencyStore();
 
   useEffect(() => {
     loadCart();
@@ -69,7 +71,7 @@ export default function CartScreen() {
           {item.product.name}
         </Text>
         <Text style={styles.productPrice}>
-          {item.price.toLocaleString('fr-FR')} FCFA
+          {formatPrice(convertPrice(item.price))}
         </Text>
 
         {/* Contrôles de quantité */}
@@ -121,7 +123,7 @@ export default function CartScreen() {
   }
 
   const total = getTotal();
-  const shippingFee = 2000; // Frais de livraison fixes
+  const shippingFee = 2000; // Frais de livraison fixes en USD
   const finalTotal = total + shippingFee;
 
   return (
@@ -139,14 +141,14 @@ export default function CartScreen() {
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Sous-total</Text>
               <Text style={styles.summaryValue}>
-                {total.toLocaleString('fr-FR')} FCFA
+                {formatPrice(convertPrice(total))}
               </Text>
             </View>
 
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Frais de livraison</Text>
               <Text style={styles.summaryValue}>
-                {shippingFee.toLocaleString('fr-FR')} FCFA
+                {formatPrice(convertPrice(shippingFee))}
               </Text>
             </View>
 
@@ -155,7 +157,7 @@ export default function CartScreen() {
             <View style={styles.summaryRow}>
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalValue}>
-                {finalTotal.toLocaleString('fr-FR')} FCFA
+                {formatPrice(convertPrice(finalTotal))}
               </Text>
             </View>
           </View>
@@ -175,7 +177,7 @@ export default function CartScreen() {
             style={styles.checkoutGradient}
           >
             <Text style={styles.checkoutButtonText}>
-              Commander • {finalTotal.toLocaleString('fr-FR')} FCFA
+              Commander • {formatPrice(convertPrice(finalTotal))}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

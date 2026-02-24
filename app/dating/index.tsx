@@ -14,7 +14,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { DatingProfile } from '../../src/types/dating';
-import { api } from '../../src/services/api';
+import api from '../../src/services/api';
+import { DatingCardSkeleton } from '../../src/components/Skeleton';
 
 export default function DatingPage() {
   const router = useRouter();
@@ -123,9 +124,15 @@ export default function DatingPage() {
           </View>
           <View style={styles.headerButton} />
         </View>
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#ec4899" />
-          <Text style={styles.loadingText}>Chargement des profils...</Text>
+        <View style={styles.listContainer}>
+          <View style={styles.columnWrapper}>
+            <DatingCardSkeleton />
+            <DatingCardSkeleton />
+          </View>
+          <View style={styles.columnWrapper}>
+            <DatingCardSkeleton />
+            <DatingCardSkeleton />
+          </View>
         </View>
       </SafeAreaView>
     );

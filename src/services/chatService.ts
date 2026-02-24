@@ -394,3 +394,146 @@ export function subscribeToTotalUnreadCount(
     callback(total);
   });
 }
+
+
+// ============================================
+// HELPER FUNCTIONS FOR SPECIFIC CONTEXTS
+// ============================================
+
+/**
+ * Create or get conversation for product inquiry
+ */
+export async function createOrGetConversation(
+  clientId: string,
+  ownerId: string,
+  clientData: { name: string; photo?: string; role: string },
+  ownerData: { name: string; photo?: string; role: string },
+  productContext?: {
+    id: string;
+    name: string;
+    image?: string;
+    type: 'product' | 'hotel' | 'restaurant' | 'dating';
+  }
+): Promise<string> {
+  const context: ConversationContext = {
+    type: productContext?.type === 'dating' ? 'dating_inquiry' : 
+          productContext?.type === 'hotel' ? 'hotel_inquiry' :
+          productContext?.type === 'restaurant' ? 'restaurant_inquiry' : 'product_inquiry',
+    itemId: productContext?.id,
+    itemName: productContext?.name,
+  };
+
+  const productRef: ProductReference | undefined = productContext ? {
+    productId: productContext.id,
+    productName: productContext.name,
+    productImage: productContext.image,
+  } : undefined;
+
+  return getOrCreateConversation(
+    clientId,
+    ownerId,
+    clientData,
+    ownerData,
+    context,
+    productRef
+  );
+}
+
+/**
+ * Create conversation for hotel inquiry
+ */
+export async function createHotelInquiryConversation(
+  clientId: string,
+  hotelOwnerId: string,
+  clientData: { name: string; photo?: string; role: string },
+  ownerData: { name: string; photo?: string; role: string },
+  hotelId: string,
+  hotelName: string,
+  hotelImage?: string
+): Promise<string> {
+  return createOrGetConversation(
+    clientId,
+    hotelOwnerId,
+    clientData,
+    ownerData,
+    {
+      id: hotelId,
+      name: hotelName,
+      image: hotelImage,
+      type: 'hotel',
+    }
+  );
+}
+
+/**
+ * Create conversation for restaurant inquiry
+ */
+export async function createRestaurantInquiryConversation(
+  clientId: string,
+  restaurantOwnerId: string,
+  clientData: { name: string; photo?: string; role: string },
+  ownerData: { name: string; photo?: string; role: string },
+  restaurantId: string,
+  restaurantName: string,
+  restaurantImage?: string
+): Promise<string> {
+  return createOrGetConversation(
+    clientId,
+    restaurantOwnerId,
+    clientData,
+    ownerData,
+    {
+      id: restaurantId,
+      name: restaurantName,
+      image: restaurantImage,
+      type: 'restaurant',
+    }
+  );
+}
+
+/**
+ * Create conversation for dating profile inquiry
+ */
+export async function createDatingInquiryConversation(
+  clientId: string,
+  intermediaryId: string,
+  clientData: { name: string; photo?: string; role: string },
+  intermediaryData: { name: string; photo?: string; role: string },
+  profileId: string,
+  profileName: string,
+  profileImage?: string
+): Promise<string> {
+  return createOrGetConversation(
+    clientId,
+    intermediaryId,
+    clientData,
+    intermediaryData,
+    {
+      id: profileId,
+      name: profileName,
+      image: profileImage,
+      type: 'dating',
+    }
+  );
+}
+
+// Export all functions as chatService
+export const chatService = {
+  createOrGetConversation,
+  getOrCreateConversation,
+  createHotelInquiryConversation,
+  createRestaurantInquiryConversation,
+  createDatingInquiryConversation,
+  getUserConversations,
+  subscribeToUserConversations,
+  sendMessage,
+  uploadChatImage,
+  uploadChatVideo,
+  uploadChatFile,
+  getConversationMessages,
+  subscribeToConversationMessages,
+  markMessagesAsRead,
+  getConversation,
+  getTotalUnreadCount,
+  subscribeToTotalUnreadCount,
+};

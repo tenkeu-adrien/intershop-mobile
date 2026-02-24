@@ -12,21 +12,17 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import api from '../services/api';
 
-const ROLES = [
-  { value: 'client', label: 'Client', icon: '👤', description: 'Acheter des produits' },
-  { value: 'fournisseur', label: 'Fournisseur', icon: '🏪', description: 'Vendre des produits' },
-  { value: 'marketiste', label: 'Marketiste', icon: '📊', description: 'Codes marketing' },
-];
-
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { signUp, loading, error, clearError } = useAuthStore();
-  
+
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,34 +32,40 @@ export default function RegisterScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [localError, setLocalError] = useState('');
 
+  const ROLES = [
+    { value: 'client', label: t('auth.role_client', 'Client'), icon: '👤', description: t('auth.role_client_desc', 'Acheter des produits') },
+    { value: 'fournisseur', label: t('auth.role_vendor', 'Fournisseur'), icon: '🏪', description: t('auth.role_vendor_desc', 'Vendre des produits') },
+    { value: 'marketiste', label: t('auth.role_marketer', 'Marketiste'), icon: '📊', description: t('auth.role_marketer_desc', 'Codes marketing') },
+  ];
+
   const handleRegister = async () => {
     setLocalError('');
     clearError();
 
     // Validation
     if (!displayName || !email || !password || !confirmPassword) {
-      setLocalError('Veuillez remplir tous les champs');
+      setLocalError(t('common.error_fields_required', 'Veuillez remplir tous les champs'));
       return;
     }
 
     if (!email.includes('@')) {
-      setLocalError('Email invalide');
+      setLocalError(t('auth.invalid_email', 'Email invalide'));
       return;
     }
 
     if (password.length < 6) {
-      setLocalError('Le mot de passe doit contenir au moins 6 caractères');
+      setLocalError(t('auth.error_password_too_short', 'Le mot de passe doit contenir au moins 6 caractères'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setLocalError('Les mots de passe ne correspondent pas');
+      setLocalError(t('auth.error_passwords_mismatch', 'Les mots de passe ne correspondent pas'));
       return;
     }
 
     try {
       await signUp(email.trim().toLowerCase(), password, displayName.trim(), role);
-      
+
       // Envoyer le code de vérification email
       const { user } = useAuthStore.getState();
       if (user) {
@@ -74,10 +76,10 @@ export default function RegisterScreen() {
           // Continue même si l'envoi échoue
         }
       }
-      
+
       Alert.alert(
-        'Inscription réussie!',
-        'Vérifiez votre email pour activer votre compte.',
+        t('auth.success_registration_title', 'Inscription réussie!'),
+        t('auth.success_registration_message', 'Vérifiez votre email pour activer votre compte.'),
         [
           {
             text: 'OK',
@@ -86,9 +88,9 @@ export default function RegisterScreen() {
         ]
       );
     } catch (err: any) {
-      const errorMessage = err.message || 'Erreur lors de l\'inscription';
+      const errorMessage = err.message || t('auth.error_registration', 'Erreur lors de l\'inscription');
       setLocalError(errorMessage);
-      Alert.alert('Erreur', errorMessage);
+      Alert.alert(t('common.error'), errorMessage);
     }
   };
 
@@ -109,8 +111,8 @@ export default function RegisterScreen() {
           style={styles.header}
         >
           <Text style={styles.logo}>🛍️</Text>
-          <Text style={styles.title}>Créer un compte</Text>
-          <Text style={styles.subtitle}>Rejoignez InterShop aujourd'hui</Text>
+          <Text style={styles.title}>{t('auth.register')}</Text>
+          <Text style={styles.subtitle}>{t('auth.subtitle_register', "Rejoignez InterShop aujourd'hui")}</Text>
         </LinearGradient>
 
         {/* Formulaire */}
@@ -122,7 +124,7 @@ export default function RegisterScreen() {
             </View>
             <TextInput
               style={styles.input}
-              placeholder="Nom complet"
+              placeholder={t('auth.name', 'Nom complet')}
               placeholderTextColor="#9CA3AF"
               value={displayName}
               onChangeText={setDisplayName}
@@ -137,7 +139,7 @@ export default function RegisterScreen() {
             </View>
             <TextInput
               style={styles.input}
-              placeholder="Email"
+              placeholder={t('auth.email', 'Email')}
               placeholderTextColor="#9CA3AF"
               value={email}
               onChangeText={setEmail}
@@ -154,7 +156,7 @@ export default function RegisterScreen() {
             </View>
             <TextInput
               style={styles.input}
-              placeholder="Mot de passe"
+              placeholder={t('auth.password', 'Mot de passe')}
               placeholderTextColor="#9CA3AF"
               value={password}
               onChangeText={setPassword}
@@ -165,10 +167,10 @@ export default function RegisterScreen() {
               style={styles.eyeIcon}
               onPress={() => setShowPassword(!showPassword)}
             >
-              <Ionicons 
-                name={showPassword ? "eye-off" : "eye"} 
-                size={20} 
-                color="#9CA3AF" 
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={20}
+                color="#9CA3AF"
               />
             </TouchableOpacity>
           </View>
@@ -180,7 +182,7 @@ export default function RegisterScreen() {
             </View>
             <TextInput
               style={styles.input}
-              placeholder="Confirmer le mot de passe"
+              placeholder={t('auth.confirm_password', 'Confirmer le mot de passe')}
               placeholderTextColor="#9CA3AF"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -191,17 +193,17 @@ export default function RegisterScreen() {
               style={styles.eyeIcon}
               onPress={() => setShowConfirmPassword(!showConfirmPassword)}
             >
-              <Ionicons 
-                name={showConfirmPassword ? "eye-off" : "eye"} 
-                size={20} 
-                color="#9CA3AF" 
+              <Ionicons
+                name={showConfirmPassword ? "eye-off" : "eye"}
+                size={20}
+                color="#9CA3AF"
               />
             </TouchableOpacity>
           </View>
 
           {/* Sélection du rôle */}
           <View style={styles.roleSection}>
-            <Text style={styles.roleTitle}>Je suis un:</Text>
+            <Text style={styles.roleTitle}>{t('auth.iam_a', 'Je suis un:')}</Text>
             <View style={styles.rolesContainer}>
               {ROLES.map((r) => (
                 <TouchableOpacity
@@ -249,16 +251,16 @@ export default function RegisterScreen() {
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text style={styles.registerButtonText}>S'inscrire</Text>
+                <Text style={styles.registerButtonText}>{t('auth.register')}</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>
 
           {/* Lien de connexion */}
           <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Déjà un compte? </Text>
+            <Text style={styles.loginText}>{t('auth.already_account')} </Text>
             <TouchableOpacity onPress={() => router.push('/login')}>
-              <Text style={styles.loginLink}>Se connecter</Text>
+              <Text style={styles.loginLink}>{t('auth.login')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -407,3 +409,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+

@@ -1,0 +1,269 @@
+{
+    "fr": {
+        "common": {
+            "loading": "Chargement...",
+            "error": "Une erreur est survenue",
+            "success": "Succès",
+            "cancel": "Annuler",
+            "confirm": "Confirmer",
+            "save": "Enregistrer",
+            "back": "Retour",
+            "close": "Fermer",
+            "search": "Rechercher...",
+            "yes": "Oui",
+            "no": "Non"
+        },
+        "nav": {
+            "home": "Accueil",
+            "categories": "Catégories",
+            "chat": "Messages",
+            "cart": "Panier",
+            "profile": "Mon InterShop"
+        },
+        "home": {
+            "search_placeholder": "Rechercher des produits...",
+            "categories": "Catégories",
+            "featured": "Produits en vedette",
+            "pull_refresh": "Tirer pour rafraîchir",
+            "ecommerce": "E-commerce",
+            "restaurants": "Restaurants",
+            "hotels": "Hôtels",
+            "dating": "Rencontres"
+        },
+        "products": {
+            "title": "Produits",
+            "add_to_cart": "Ajouter au panier",
+            "buy_now": "Acheter",
+            "contact_seller": "Contacter le vendeur",
+            "similar": "Produits similaires",
+            "out_of_stock": "Rupture de stock",
+            "moq": "Qté min",
+            "rating": "Note",
+            "reviews": "avis",
+            "price": "Prix",
+            "sold": "vendus"
+        },
+        "cart": {
+            "title": "Panier",
+            "empty": "Votre panier est vide",
+            "total": "Total",
+            "checkout": "Commander",
+            "shipping": "Livraison",
+            "remove": "Retirer"
+        },
+        "auth": {
+            "login": "Connexion",
+            "register": "Inscription",
+            "logout": "Déconnexion",
+            "email": "Email",
+            "password": "Mot de passe",
+            "name": "Nom complet",
+            "phone": "Téléphone",
+            "forgot_password": "Mot de passe oublié ?",
+            "no_account": "Pas de compte ?",
+            "already_account": "Déjà un compte ?"
+        },
+        "wallet": {
+            "title": "Portefeuille",
+            "balance": "Solde",
+            "deposit": "Dépôt",
+            "withdraw": "Retrait",
+            "transfer": "Transfert",
+            "history": "Historique",
+            "pin": "Code PIN",
+            "amount": "Montant"
+        },
+        "profile": {
+            "title": "Mon profil",
+            "orders": "Commandes",
+            "favorites": "Favoris",
+            "settings": "Paramètres",
+            "help": "Aide",
+            "logout": "Se déconnecter"
+        },
+        "chat": {
+            "title": "Messages",
+            "no_messages": "Aucun message",
+            "type_message": "Écrire un message...",
+            "send": "Envoyer"
+        }
+    },
+    "en": {
+        "common": {
+            "loading": "Loading...",
+            "error": "An error occurred",
+            "success": "Success",
+            "cancel": "Cancel",
+            "confirm": "Confirm",
+            "save": "Save",
+            "back": "Back",
+            "close": "Close",
+            "search": "Search...",
+            "yes": "Yes",
+            "no": "No"
+        },
+        "nav": {
+            "home": "Home",
+            "categories": "Categories",
+            "chat": "Messages",
+            "cart": "Cart",
+            "profile": "My InterShop"
+        },
+        "home": {
+            "search_placeholder": "Search products...",
+            "categories": "Categories",
+            "featured": "Featured Products",
+            "pull_refresh": "Pull to refresh",
+            "ecommerce": "E-commerce",
+            "restaurants": "Restaurants",
+            "hotels": "Hotels",
+            "dating": "Dating"
+        },
+        "products": {
+            "title": "Products",
+            "add_to_cart": "Add to cart",
+            "buy_now": "Buy now",
+            "contact_seller": "Contact seller",
+            "similar": "Similar products",
+            "out_of_stock": "Out of stock",
+            "moq": "Min qty",
+            "rating": "Rating",
+            "reviews": "reviews",
+            "price": "Price",
+            "sold": "sold"
+        },
+        "cart": {
+            "title": "Cart",
+            "empty": "Your cart is empty",
+            "total": "Total",
+            "checkout": "Checkout",
+            "shipping": "Shipping",
+            "remove": "Remove"
+        },
+        "auth": {
+            "login": "Login",
+            "register": "Register",
+            "logout": "Logout",
+            "email": "Email",
+            "password": "Password",
+            "name": "Full name",
+            "phone": "Phone",
+            "forgot_password": "Forgot password?",
+            "no_account": "No account?",
+            "already_account": "Already have an account?"
+        },
+        "wallet": {
+            "title": "Wallet",
+            "balance": "Balance",
+            "deposit": "Deposit",
+            "withdraw": "Withdraw",
+            "transfer": "Transfer",
+            "history": "History",
+            "pin": "PIN Code",
+            "amount": "Amount"
+        },
+        "profile": {
+            "title": "My profile",
+            "orders": "Orders",
+            "favorites": "Favorites",
+            "settings": "Settings",
+            "help": "Help",
+            "logout": "Log out"
+        },
+        "chat": {
+            "title": "Messages",
+            "no_messages": "No messages",
+            "type_message": "Type a message...",
+            "send": "Send"
+        }
+    },
+    "ar": {
+        "common": {
+            "loading": "جاري التحميل...",
+            "error": "حدث خطأ",
+            "success": "نجاح",
+            "cancel": "إلغاء",
+            "confirm": "تأكيد",
+            "save": "حفظ",
+            "back": "رجوع",
+            "close": "إغلاق",
+            "search": "بحث...",
+            "yes": "نعم",
+            "no": "لا"
+        },
+        "nav": {
+            "home": "الرئيسية",
+            "categories": "الفئات",
+            "chat": "الرسائل",
+            "cart": "السلة",
+            "profile": "حسابي"
+        },
+        "home": {
+            "search_placeholder": "ابحث عن منتجات...",
+            "categories": "الفئات",
+            "featured": "المنتجات المميزة",
+            "pull_refresh": "اسحب للتحديث",
+            "ecommerce": "تجارة إلكترونية",
+            "restaurants": "مطاعم",
+            "hotels": "فنادق",
+            "dating": "مواعدة"
+        },
+        "products": {
+            "title": "المنتجات",
+            "add_to_cart": "أضف للسلة",
+            "buy_now": "اشتري الآن",
+            "contact_seller": "تواصل مع البائع",
+            "similar": "منتجات مشابهة",
+            "out_of_stock": "نفد المخزون",
+            "moq": "الحد الأدنى",
+            "rating": "التقييم",
+            "reviews": "تقييمات",
+            "price": "السعر",
+            "sold": "مباع"
+        },
+        "cart": {
+            "title": "السلة",
+            "empty": "سلتك فارغة",
+            "total": "الإجمالي",
+            "checkout": "إتمام الشراء",
+            "shipping": "الشحن",
+            "remove": "إزالة"
+        },
+        "auth": {
+            "login": "تسجيل الدخول",
+            "register": "إنشاء حساب",
+            "logout": "تسجيل خروج",
+            "email": "البريد الإلكتروني",
+            "password": "كلمة المرور",
+            "name": "الاسم الكامل",
+            "phone": "الهاتف",
+            "forgot_password": "نسيت كلمة المرور؟",
+            "no_account": "ليس لديك حساب؟",
+            "already_account": "لديك حساب؟"
+        },
+        "wallet": {
+            "title": "المحفظة",
+            "balance": "الرصيد",
+            "deposit": "إيداع",
+            "withdraw": "سحب",
+            "transfer": "تحويل",
+            "history": "السجل",
+            "pin": "رمز PIN",
+            "amount": "المبلغ"
+        },
+        "profile": {
+            "title": "ملفي الشخصي",
+            "orders": "الطلبات",
+            "favorites": "المفضلة",
+            "settings": "الإعدادات",
+            "help": "المساعدة",
+            "logout": "تسجيل الخروج"
+        },
+        "chat": {
+            "title": "الرسائل",
+            "no_messages": "لا توجد رسائل",
+            "type_message": "اكتب رسالة...",
+            "send": "إرسال"
+        }
+    }
+}

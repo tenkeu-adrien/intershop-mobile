@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
+import { useCurrencyStore } from '../../src/store/currencyStore';
 import api from '../../src/services/api';
 
 type OrderStatus = 'all' | 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -31,6 +32,7 @@ interface Order {
 export default function OrdersPage() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const { convertPrice, formatPrice } = useCurrencyStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,78 +57,31 @@ export default function OrdersPage() {
     try {
       if (!user) return;
       
-      // Essayer de charger depuis l'API
+      console.log('📦 [Orders] Loading orders for user:', user.id);
+      
+      // Charger depuis l'API
       const response = await api.get(`/api/mobile/orders?userId=${user.id}`);
       
-      if (response.data.orders && response.data.orders.length > 0) {
-        setOrders(response.data.orders);
-      } else {
-        // Utiliser des données de démonstration si pas de commandes
-        const demoOrders: Order[] = [
-          {
-            id: '1',
-            orderNumber: 'ORD-2024-001',
-            products: [{ name: 'Produit de démonstration 1', quantity: 2 }],
-            total: 25000,
-            status: 'delivered',
-            paymentStatus: 'paid',
-            createdAt: new Date('2024-01-15'),
-          },
-          {
-            id: '2',
-            orderNumber: 'ORD-2024-002',
-            products: [{ name: 'Produit de démonstration 2', quantity: 1 }],
-            total: 15000,
-            status: 'processing',
-            paymentStatus: 'paid',
-            createdAt: new Date('2024-01-20'),
-          },
-          {
-            id: '3',
-            orderNumber: 'ORD-2024-003',
-            products: [{ name: 'Produit de démonstration 3', quantity: 3 }],
-            total: 45000,
-            status: 'pending',
-            paymentStatus: 'pending',
-            createdAt: new Date('2024-01-22'),
-          },
-        ];
-        setOrders(demoOrders);
-      }
-    } catch (error) {
-      console.error('Error loading orders:', error);
+      console.log('📦 [Orders] API Response:', response.data);
       
-      // Utiliser des données de démonstration en cas d'erreur
-      const demoOrders: Order[] = [
-        {
-          id: '1',
-          orderNumber: 'ORD-2024-001',
-          products: [{ name: 'Produit de démonstration 1', quantity: 2 }],
-          total: 25000,
-          status: 'delivered',
-          paymentStatus: 'paid',
-          createdAt: new Date('2024-01-15'),
-        },
-        {
-          id: '2',
-          orderNumber: 'ORD-2024-002',
-          products: [{ name: 'Produit de démonstration 2', quantity: 1 }],
-          total: 15000,
-          status: 'processing',
-          paymentStatus: 'paid',
-          createdAt: new Date('2024-01-20'),
-        },
-        {
-          id: '3',
-          orderNumber: 'ORD-2024-003',
-          products: [{ name: 'Produit de démonstration 3', quantity: 3 }],
-          total: 45000,
-          status: 'pending',
-          paymentStatus: 'pending',
-          createdAt: new Date('2024-01-22'),
-        },
-      ];
-      setOrders(demoOrders);
+      if (response.data.success && response.data.orders) {
+        // Convertir les dates
+        const ordersWithDates = response.data.orders.map((order: any) => ({
+          ...order,
+          createdAt: new Date(order.createdAt),
+          updatedAt: new Date(order.updatedAt),
+        }));
+        
+        setOrders(ordersWithDates);
+        console.log(`✅ [Orders] Loaded ${ordersWithDates.length} orders`);
+      } else {
+        console.log('ℹ️ [Orders] No orders found');
+        setOrders([]);
+      }
+    } catch (error: any) {
+      console.error('❌ [Orders] Error loading orders:', error);
+      console.error('Error details:', error.response?.data);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -272,7 +227,7 @@ export default function OrdersPage() {
             {item.products.length} produit{item.products.length > 1 ? 's' : ''}
           </Text>
           <Text style={styles.orderTotal}>
-            {item.total.toLocaleString('fr-FR')} FCFA
+            {formatPrice(convertPrice(item.total))}
           </Text>
         </View>
 

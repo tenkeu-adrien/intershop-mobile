@@ -18,6 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useCartStore } from '../../src/store/cartStore';
 import { useProductsStore } from '../../src/store/productsStore';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
+import { useCurrencyStore } from '../../src/store/currencyStore';
 import { Product } from '../../src/types';
 import { ProductChatActions } from '../../src/components/ProductChatActions';
 
@@ -28,6 +29,7 @@ export default function ProductDetailScreen() {
   const router = useRouter();
   const { addToCart } = useCartStore();
   const { fetchProductById, fetchSimilarProducts } = useProductsStore();
+  const { convertPrice, formatPrice } = useCurrencyStore();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -142,10 +144,12 @@ export default function ProductDetailScreen() {
   };
 
   const handleShare = async () => {
+    if (!product) return;
     try {
+      const price = formatPrice(convertPrice(product.prices[0]?.price || 0));
       await Share.share({
-        message: `Découvrez ce produit: ${product?.name}\n\nPrix: ${product?.prices[0]?.price.toLocaleString('fr-FR')} FCFA`,
-        title: product?.name,
+        message: `Découvrez ce produit: ${product.name}\n\nPrix: ${price}`,
+        title: product.name,
       });
     } catch (error) {
       console.error('Error sharing:', error);
@@ -253,7 +257,7 @@ export default function ProductDetailScreen() {
           {/* Price */}
           <View style={styles.priceContainer}>
             <Text style={styles.price}>
-              {currentPrice.price.toLocaleString('fr-FR')} FCFA
+              {formatPrice(convertPrice(currentPrice.price))}
             </Text>
             <Text style={styles.priceUnit}>/ unité</Text>
           </View>
@@ -283,7 +287,7 @@ export default function ProductDetailScreen() {
                       {tier.maxQuantity ? `-${tier.maxQuantity}` : '+'} unités
                     </Text>
                     <Text style={styles.priceTierPrice}>
-                      {tier.price.toLocaleString('fr-FR')} FCFA
+                      {formatPrice(convertPrice(tier.price))}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -325,7 +329,7 @@ export default function ProductDetailScreen() {
             <Text style={styles.totalPrice}>
               Total:{' '}
               <Text style={styles.totalPriceValue}>
-                {totalPrice.toLocaleString('fr-FR')} FCFA
+                {formatPrice(convertPrice(totalPrice))}
               </Text>
             </Text>
           </View>
@@ -467,7 +471,7 @@ export default function ProductDetailScreen() {
                       </Text>
                     </View>
                     <Text style={styles.similarProductPrice}>
-                      {item.prices[0]?.price.toLocaleString('fr-FR')} FCFA
+                      {formatPrice(convertPrice(item.prices[0]?.price || 0))}
                     </Text>
                   </TouchableOpacity>
                 )}

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 
 export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'XOF' | 'XAF' | 'NGN' | 'GHS' | 'KES' | 'ZAR' | 'MAD';
 
@@ -9,19 +10,20 @@ export interface Currency {
   name: string;
   symbol: string;
   flag: string;
+  countries: string[]; // Codes pays ISO
 }
 
 export const SUPPORTED_CURRENCIES: Record<SupportedCurrency, Currency> = {
-  USD: { code: 'USD', name: 'Dollar américain', symbol: '$', flag: 'US' },
-  EUR: { code: 'EUR', name: 'Euro', symbol: '€', flag: 'EU' },
-  GBP: { code: 'GBP', name: 'Livre sterling', symbol: '£', flag: 'GB' },
-  XOF: { code: 'XOF', name: 'Franc CFA (BCEAO)', symbol: 'FCFA', flag: 'SN' },
-  XAF: { code: 'XAF', name: 'Franc CFA (BEAC)', symbol: 'FCFA', flag: 'CM' },
-  NGN: { code: 'NGN', name: 'Naira nigérian', symbol: '₦', flag: 'NG' },
-  GHS: { code: 'GHS', name: 'Cedi ghanéen', symbol: '₵', flag: 'GH' },
-  KES: { code: 'KES', name: 'Shilling kényan', symbol: 'KSh', flag: 'KE' },
-  ZAR: { code: 'ZAR', name: 'Rand sud-africain', symbol: 'R', flag: 'ZA' },
-  MAD: { code: 'MAD', name: 'Dirham marocain', symbol: 'DH', flag: 'MA' },
+  USD: { code: 'USD', name: 'Dollar américain', symbol: '$', flag: 'US', countries: ['US'] },
+  EUR: { code: 'EUR', name: 'Euro', symbol: '€', flag: 'EU', countries: ['FR', 'DE', 'IT', 'ES', 'PT', 'BE', 'NL', 'AT', 'IE', 'FI', 'GR'] },
+  GBP: { code: 'GBP', name: 'Livre sterling', symbol: '£', flag: 'GB', countries: ['GB'] },
+  XOF: { code: 'XOF', name: 'Franc CFA (BCEAO)', symbol: 'FCFA', flag: 'SN', countries: ['SN', 'CI', 'BJ', 'BF', 'TG', 'NE', 'ML', 'GW'] },
+  XAF: { code: 'XAF', name: 'Franc CFA (BEAC)', symbol: 'FCFA', flag: 'CM', countries: ['CM', 'GA', 'CG', 'TD', 'CF', 'GQ'] },
+  NGN: { code: 'NGN', name: 'Naira nigérian', symbol: '₦', flag: 'NG', countries: ['NG'] },
+  GHS: { code: 'GHS', name: 'Cedi ghanéen', symbol: '₵', flag: 'GH', countries: ['GH'] },
+  KES: { code: 'KES', name: 'Shilling kényan', symbol: 'KSh', flag: 'KE', countries: ['KE'] },
+  ZAR: { code: 'ZAR', name: 'Rand sud-africain', symbol: 'R', flag: 'ZA', countries: ['ZA'] },
+  MAD: { code: 'MAD', name: 'Dirham marocain', symbol: 'DH', flag: 'MA', countries: ['MA'] },
 };
 
 // Taux de change par rapport à USD (mis à jour périodiquement)
@@ -44,12 +46,17 @@ interface CurrencyState {
   loading: boolean;
   error: string | null;
   lastUpdate: Date | null;
+  isAutoDetected: boolean; // Indique si la devise a été auto-détectée
+  userCountry: string | null; // Code pays de l'utilisateur
+  hasDetectedOnce: boolean; // Indique si la détection a déjà été faite
 
   // Actions
-  setCurrency: (currency: SupportedCurrency) => void;
+  setCurrency: (currency: SupportedCurrency, isManual?: boolean) => void;
+  detectCurrencyFromLocation: () => Promise<void>;
   updateExchangeRates: () => Promise<void>;
   convertPrice: (amountUSD: number) => number;
   formatPrice: (amount: number, currency?: SupportedCurrency) => string;
+  getCurrencyFromCountryCode: (countryCode: string) => SupportedCurrency;
 }
 
 export const useCurrencyStore = create<CurrencyState>()(
@@ -60,9 +67,82 @@ export const useCurrencyStore = create<CurrencyState>()(
       loading: false,
       error: null,
       lastUpdate: null,
+      isAutoDetected: false,
+      userCountry: null,
+      hasDetectedOnce: false,
 
-      setCurrency: (currency: SupportedCurrency) => {
-        set({ selectedCurrency: currency });
+      setCurrency: (currency: SupportedCurrency, isManual = true) => {
+        set({ 
+          selectedCurrency: currency,
+          isAutoDetected: !isManual,
+          hasDetectedOnce: true,
+        });
+      },
+
+      getCurrencyFromCountryCode: (countryCode: string): SupportedCurrency => {
+        // Chercher la devise correspondant au pays
+        for (const [currencyCode, currency] of Object.entries(SUPPORTED_CURRENCIES)) {
+          if (currency.countries.includes(countryCode)) {
+            return currencyCode as SupportedCurrency;
+          }
+        }
+        // Par défaut, retourner USD
+        return 'USD';
+      },
+
+      detectCurrencyFromLocation: async () => {
+        const { hasDetectedOnce } = get();
+        
+        // Ne pas détecter si déjà fait
+        if (hasDetectedOnce) {
+          console.log('⏭️ Détection déjà effectuée, skip');
+          return;
+        }
+
+        set({ loading: true, error: null });
+        try {
+          // Demander la permission de localisation
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          
+          if (status !== 'granted') {
+            console.log('Permission de localisation refusée');
+            set({ loading: false, hasDetectedOnce: true });
+            return;
+          }
+
+          // Obtenir la position actuelle
+          const location = await Location.getCurrentPositionAsync({});
+          
+          // Obtenir le code pays via reverse geocoding
+          const [address] = await Location.reverseGeocodeAsync({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          });
+
+          if (address && address.isoCountryCode) {
+            const countryCode = address.isoCountryCode;
+            const detectedCurrency = get().getCurrencyFromCountryCode(countryCode);
+            
+            console.log(`📍 Pays détecté: ${countryCode}, Devise: ${detectedCurrency}`);
+            
+            set({
+              selectedCurrency: detectedCurrency,
+              userCountry: countryCode,
+              isAutoDetected: true,
+              hasDetectedOnce: true,
+              loading: false,
+            });
+          } else {
+            set({ loading: false, hasDetectedOnce: true });
+          }
+        } catch (error: any) {
+          console.error('Erreur détection localisation:', error);
+          set({
+            error: error.message || 'Impossible de détecter la localisation',
+            loading: false,
+            hasDetectedOnce: true,
+          });
+        }
       },
 
       updateExchangeRates: async () => {
@@ -110,6 +190,9 @@ export const useCurrencyStore = create<CurrencyState>()(
       partialize: (state) => ({
         selectedCurrency: state.selectedCurrency,
         lastUpdate: state.lastUpdate,
+        isAutoDetected: state.isAutoDetected,
+        userCountry: state.userCountry,
+        hasDetectedOnce: state.hasDetectedOnce,
       }),
     }
   )

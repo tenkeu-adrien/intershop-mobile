@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { api } from '../../src/services/api';
+import api from '../../src/services/api';
 import { RestaurantCardSkeleton } from '../../src/components/Skeleton';
 import { Product } from '../../src/types';
 

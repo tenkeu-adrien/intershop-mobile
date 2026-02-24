@@ -12,7 +12,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
 import { useCurrencyStore, SUPPORTED_CURRENCIES } from '../../src/store/currencyStore';
-import CurrencySelector from '../../src/components/ui/CurrencySelector';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -145,13 +144,19 @@ export default function SettingsPage() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/settings/currency')}
+          >
             <View style={styles.menuItemLeft}>
               <Ionicons name="cash" size={24} color="#6B7280" />
               <Text style={styles.menuItemText}>Devise</Text>
             </View>
             <View style={styles.menuItemRight}>
-              <CurrencySelector />
+              <Text style={styles.menuItemValue}>
+                {SUPPORTED_CURRENCIES[selectedCurrency].code} ({SUPPORTED_CURRENCIES[selectedCurrency].symbol})
+              </Text>
+              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
             </View>
           </TouchableOpacity>
         </View>
