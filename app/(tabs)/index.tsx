@@ -9,12 +9,17 @@ import {
   Dimensions,
   RefreshControl,
   FlatList,
+  Modal,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { useProductsStore } from '../../src/store/productsStore';
-import { useCurrencyStore } from '../../src/store/currencyStore';
+import { useCurrencyStore, SUPPORTED_CURRENCIES } from '../../src/store/currencyStore';
+import { useAuthStore } from '../../src/store/authStore';
+import { useNotificationsStore } from '../../src/store/notificationsStore';
 import { ProductCardSkeleton } from '../../src/components/Skeleton';
 import CategorySelector from '../../src/components/CategorySelector';
 import { Product } from '../../src/types';
@@ -22,22 +27,52 @@ import api from '../../src/services/api';
 
 const { width } = Dimensions.get('window');
 
+// Drapeaux pour les langues
+const LANGUAGE_FLAGS = {
+  fr: '🇫🇷',
+  en: '🇬🇧',
+  ar: '🇸🇦',
+  sw: '🇹🇿',
+};
+
+const LANGUAGES = [
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+  { code: 'sw', name: 'Kiswahili', flag: '🇹🇿' },
+];
+
 export default function HomeScreen() {
+  const { t, i18n } = useTranslation();
   const router = useRouter();
+  const { user } = useAuthStore();
+  const { unreadCount, fetchUnreadCount } = useNotificationsStore();
   const { products, loading, fetchProducts, loadMore, hasMore } = useProductsStore();
-  const { convertPrice, formatPrice } = useCurrencyStore();
+  const { convertPrice, formatPrice, selectedCurrency: currency, setCurrency, currencies } = useCurrencyStore();
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [activeSection, setActiveSection] = useState<'deals' | 'top' | 'new'>('deals');
   const [restaurants, setRestaurants] = useState<Product[]>([]);
   const [hotels, setHotels] = useState<Product[]>([]);
   const [datingProfiles, setDatingProfiles] = useState<Product[]>([]);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showCurrencyModal, setShowCurrencyModal] = useState(false);
 
   useEffect(() => {
     console.log('🏠 [Home] Component mounted, fetching products...');
     fetchProducts();
     loadServiceSections();
-  }, []);
+    
+    // Charger les notifications si connecté
+    if (user) {
+      fetchUnreadCount(user.id);
+      // Poll toutes les 30 secondes
+      const interval = setInterval(() => {
+        fetchUnreadCount(user.id);
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   const loadServiceSections = async () => {
     try {
@@ -110,28 +145,28 @@ export default function HomeScreen() {
   }, [loadingMore, hasMore, loading, products.length, loadMore]);
 
   const categories = [
-    { name: 'Électronique', icon: 'laptop-outline', color: '#3B82F6' },
-    { name: 'Mode', icon: 'shirt-outline', color: '#EC4899' },
-    { name: 'Maison', icon: 'home-outline', color: '#10B981' },
-    { name: 'Sport', icon: 'football-outline', color: '#F97316' },
-    { name: 'Beauté', icon: 'sparkles-outline', color: '#A855F7' },
-    { name: 'Jouets', icon: 'game-controller-outline', color: '#FBBF24' },
-    { name: 'Auto', icon: 'car-outline', color: '#EF4444' },
-    { name: 'Food', icon: 'fast-food-outline', color: '#10B981' },
+    { name: t('categories.electronics'), icon: 'laptop-outline', color: '#3B82F6' },
+    { name: t('categories.fashion'), icon: 'shirt-outline', color: '#EC4899' },
+    { name: t('categories.home'), icon: 'home-outline', color: '#10B981' },
+    { name: t('categories.sport'), icon: 'football-outline', color: '#F97316' },
+    { name: t('categories.beauty'), icon: 'sparkles-outline', color: '#A855F7' },
+    { name: t('categories.toys'), icon: 'game-controller-outline', color: '#FBBF24' },
+    { name: t('categories.auto'), icon: 'car-outline', color: '#EF4444' },
+    { name: t('categories.food'), icon: 'fast-food-outline', color: '#10B981' },
   ];
 
   const features = [
-    { icon: 'shield-checkmark', title: 'Protection', desc: 'Achats protégés', color: '#10B981' },
-    { icon: 'rocket', title: 'Livraison', desc: 'Rapide & fiable', color: '#FBBF24' },
-    { icon: 'cash', title: 'Prix bas', desc: 'Meilleurs prix', color: '#10B981' },
-    { icon: 'people', title: 'Communauté', desc: 'Millions d\'users', color: '#FBBF24' },
+    { icon: 'shield-checkmark', title: t('home.feature_protection'), desc: t('home.feature_protection_desc'), color: '#10B981' },
+    { icon: 'rocket', title: t('home.feature_delivery'), desc: t('home.feature_delivery_desc'), color: '#FBBF24' },
+    { icon: 'cash', title: t('home.feature_prices'), desc: t('home.feature_prices_desc'), color: '#10B981' },
+    { icon: 'people', title: t('home.feature_community'), desc: t('home.feature_community_desc'), color: '#FBBF24' },
   ];
 
   const stats = [
-    { icon: 'trending-up', value: '10M+', label: 'Produits', color: '#10B981' },
-    { icon: 'people', value: '5M+', label: 'Utilisateurs', color: '#FBBF24' },
-    { icon: 'cube', value: '200K+', label: 'Fournisseurs', color: '#10B981' },
-    { icon: 'flash', value: '24/7', label: 'Support', color: '#FBBF24' },
+    { icon: 'trending-up', value: '10M+', label: t('home.stats_products'), color: '#10B981' },
+    { icon: 'people', value: '5M+', label: t('home.stats_users'), color: '#FBBF24' },
+    { icon: 'cube', value: '200K+', label: t('home.stats_suppliers'), color: '#10B981' },
+    { icon: 'flash', value: '24/7', label: t('home.stats_support'), color: '#FBBF24' },
   ];
 
   const renderProductCard = ({ item, index }: { item: Product; index: number }) => (
@@ -180,7 +215,7 @@ export default function HomeScreen() {
         {/* Sales badge pour deals */}
         {activeSection === 'deals' && item.sales && item.sales > 0 && (
           <View style={styles.salesBadge}>
-            <Text style={styles.salesText}>{String(item.sales)}+ vendus</Text>
+            <Text style={styles.salesText}>{String(item.sales)}+ {t('common.sold')}</Text>
           </View>
         )}
       </View>
@@ -196,7 +231,7 @@ export default function HomeScreen() {
           </Text>
         </View>
         <Text style={styles.productPrice}>
-          {formatPrice(convertPrice(item.prices?.[0]?.price || 0))}
+          {formatPrice(convertPrice(item.prices?.[0]?.price || 0)) || '0 FCFA'}
         </Text>
         {item.moq && item.moq > 0 && (
           <Text style={styles.productMoq}>MOQ: {String(item.moq)}</Text>
@@ -215,14 +250,159 @@ export default function HomeScreen() {
     );
   };
 
+  const changeLanguage = (langCode: string) => {
+    i18n.changeLanguage(langCode);
+    setShowLanguageModal(false);
+  };
+
+  const changeCurrency = (currencyCode: string) => {
+    setCurrency(currencyCode as any, true);
+    setShowCurrencyModal(false);
+  };
+
+  // Obtenir la liste des devises
+  const currenciesList = Object.values(SUPPORTED_CURRENCIES);
+
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      {/* Hero Section */}
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#10B981" />
+      
+      {/* Header professionnel */}
+      <LinearGradient
+        colors={['#10B981', '#059669']}
+        style={styles.header}
+      >
+        <View style={styles.headerTop}>
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>InterShop</Text>
+            <Text style={styles.logoSubtext}>B2B/B2C Platform</Text>
+          </View>
+
+          {/* Actions */}
+          <View style={styles.headerActions}>
+            {/* Sélecteur de langue */}
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => setShowLanguageModal(true)}
+            >
+              <Text style={styles.flagIcon}>{LANGUAGE_FLAGS[i18n.language as keyof typeof LANGUAGE_FLAGS] || '🌐'}</Text>
+            </TouchableOpacity>
+
+            {/* Sélecteur de devise */}
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => setShowCurrencyModal(true)}
+            >
+              <Text style={styles.currencyText}>{currency}</Text>
+            </TouchableOpacity>
+
+            {/* Notifications */}
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => router.push('/notifications')}
+            >
+              <Ionicons name="notifications" size={24} color="white" />
+              {unreadCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Barre de recherche */}
+        <TouchableOpacity
+          style={styles.searchBar}
+          onPress={() => router.push('/products')}
+        >
+          <Ionicons name="search" size={20} color="#6B7280" />
+          <Text style={styles.searchPlaceholder}>{t('home.search_placeholder')}</Text>
+        </TouchableOpacity>
+      </LinearGradient>
+
+      {/* Modal de sélection de langue */}
+      <Modal
+        visible={showLanguageModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowLanguageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('settings.language')}</Text>
+              <TouchableOpacity onPress={() => setShowLanguageModal(false)}>
+                <Ionicons name="close" size={24} color="#1F2937" />
+              </TouchableOpacity>
+            </View>
+            {LANGUAGES.map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[
+                  styles.languageOption,
+                  i18n.language === lang.code && styles.languageOptionActive,
+                ]}
+                onPress={() => changeLanguage(lang.code)}
+              >
+                <Text style={styles.languageFlag}>{lang.flag}</Text>
+                <Text style={styles.languageName}>{lang.name}</Text>
+                {i18n.language === lang.code && (
+                  <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal de sélection de devise */}
+      <Modal
+        visible={showCurrencyModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowCurrencyModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('settings.currency')}</Text>
+              <TouchableOpacity onPress={() => setShowCurrencyModal(false)}>
+                <Ionicons name="close" size={24} color="#1F2937" />
+              </TouchableOpacity>
+            </View>
+            {currenciesList.map((curr) => (
+              <TouchableOpacity
+                key={curr.code}
+                style={[
+                  styles.currencyOption,
+                  currency === curr.code && styles.currencyOptionActive,
+                ]}
+                onPress={() => changeCurrency(curr.code)}
+              >
+                <View style={styles.currencyInfo}>
+                  <Text style={styles.currencyCode}>{curr.code}</Text>
+                  <Text style={styles.currencyName}>{curr.name}</Text>
+                </View>
+                {currency === curr.code && (
+                  <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </Modal>
+
+      <ScrollView
+        style={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {/* Hero Section */}
       <LinearGradient
         colors={['#FBBF24', '#10B981', '#FBBF24']}
         start={{ x: 0, y: 0 }}
@@ -231,11 +411,11 @@ export default function HomeScreen() {
       >
         <View style={styles.heroContent}>
           <Text style={styles.heroTitle}>
-            La plateforme B2B/B2C{'\n'}
-            <Text style={styles.heroTitleAccent}>leader mondial</Text>
+            {t('home.hero_title')}{'\n'}
+            <Text style={styles.heroTitleAccent}>{t('home.hero_highlight')}</Text>
           </Text>
           <Text style={styles.heroSubtitle}>
-            Connectez-vous avec des millions de fournisseurs et acheteurs
+            {t('home.hero_subtitle')}
           </Text>
           
           <View style={styles.heroButtons}>
@@ -243,7 +423,7 @@ export default function HomeScreen() {
               style={styles.heroPrimaryButton}
               onPress={() => router.push('/products')}
             >
-              <Text style={styles.heroPrimaryButtonText}>Acheter</Text>
+              <Text style={styles.heroPrimaryButtonText}>{t('home.hero_cta_buy')}</Text>
               <Ionicons name="cart" size={20} color="white" />
             </TouchableOpacity>
             
@@ -251,7 +431,7 @@ export default function HomeScreen() {
               style={styles.heroSecondaryButton}
               onPress={() => router.push('/sell')}
             >
-              <Text style={styles.heroSecondaryButtonText}>Vendre</Text>
+              <Text style={styles.heroSecondaryButtonText}>{t('home.hero_cta_sell')}</Text>
               <Ionicons name="storefront" size={20} color="#10B981" />
             </TouchableOpacity>
           </View>
@@ -271,7 +451,7 @@ export default function HomeScreen() {
 
       {/* Category Selector - Services principaux */}
       <View style={styles.categorySelectorSection}>
-        <Text style={styles.sectionTitle}>Explorez nos services</Text>
+        <Text style={styles.sectionTitle}>{t('home.explore_services')}</Text>
         <CategorySelector />
       </View>
 
@@ -282,12 +462,12 @@ export default function HomeScreen() {
             <View style={styles.sectionTitleContainer}>
               <Ionicons name="restaurant" size={28} color="#F97316" />
               <View>
-                <Text style={styles.sectionTitle}>Restaurants populaires</Text>
-                <Text style={styles.sectionSubtitle}>Découvrez les meilleurs restaurants</Text>
+                <Text style={styles.sectionTitle}>{t('home.restaurants_title')}</Text>
+                <Text style={styles.sectionSubtitle}>{t('home.restaurants_desc')}</Text>
               </View>
             </View>
             <TouchableOpacity onPress={() => router.push('/restaurants')}>
-              <Text style={styles.seeAllText}>Voir tout</Text>
+              <Text style={styles.seeAllText}>{t('common.view_all')}</Text>
             </TouchableOpacity>
           </View>
           
@@ -330,12 +510,12 @@ export default function HomeScreen() {
             <View style={styles.sectionTitleContainer}>
               <Ionicons name="bed" size={28} color="#8B5CF6" />
               <View>
-                <Text style={styles.sectionTitle}>Hôtels recommandés</Text>
-                <Text style={styles.sectionSubtitle}>Trouvez votre hébergement idéal</Text>
+                <Text style={styles.sectionTitle}>{t('home.hotels_title')}</Text>
+                <Text style={styles.sectionSubtitle}>{t('home.hotels_desc')}</Text>
               </View>
             </View>
             <TouchableOpacity onPress={() => router.push('/hotels')}>
-              <Text style={styles.seeAllText}>Voir tout</Text>
+              <Text style={styles.seeAllText}>{t('common.view_all')}</Text>
             </TouchableOpacity>
           </View>
           
@@ -378,12 +558,12 @@ export default function HomeScreen() {
             <View style={styles.sectionTitleContainer}>
               <Ionicons name="heart" size={28} color="#EC4899" />
               <View>
-                <Text style={styles.sectionTitle}>Rencontres</Text>
-                <Text style={styles.sectionSubtitle}>Trouvez la personne qui vous correspond</Text>
+                <Text style={styles.sectionTitle}>{t('home.dating_title')}</Text>
+                <Text style={styles.sectionSubtitle}>{t('home.dating_desc')}</Text>
               </View>
             </View>
             <TouchableOpacity onPress={() => router.push('/dating')}>
-              <Text style={styles.seeAllText}>Voir tout</Text>
+              <Text style={styles.seeAllText}>{t('common.view_all')}</Text>
             </TouchableOpacity>
           </View>
           
@@ -415,7 +595,7 @@ export default function HomeScreen() {
 
       {/* Features */}
       <View style={styles.featuresSection}>
-        <Text style={styles.sectionTitle}>Pourquoi nous choisir</Text>
+        <Text style={styles.sectionTitle}>{t('home.why_choose_us')}</Text>
         <View style={styles.featuresGrid}>
           {features.map((feature, index) => (
             <View key={index} style={styles.featureCard}>
@@ -432,9 +612,9 @@ export default function HomeScreen() {
       {/* Categories */}
       <View style={styles.categoriesSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Catégories</Text>
+          <Text style={styles.sectionTitle}>{t('home.categories_title')}</Text>
           <TouchableOpacity onPress={() => router.push('/categories')}>
-            <Text style={styles.seeAllText}>Voir tout</Text>
+            <Text style={styles.seeAllText}>{t('common.view_all')}</Text>
           </TouchableOpacity>
         </View>
         
@@ -469,7 +649,7 @@ export default function HomeScreen() {
               color={activeSection === 'deals' ? '#EF4444' : '#6B7280'}
             />
             <Text style={[styles.tabText, activeSection === 'deals' && styles.tabTextActive]}>
-              Offres
+              {t('home.deals_tab')}
             </Text>
           </TouchableOpacity>
 
@@ -483,7 +663,7 @@ export default function HomeScreen() {
               color={activeSection === 'top' ? '#FBBF24' : '#6B7280'}
             />
             <Text style={[styles.tabText, activeSection === 'top' && styles.tabTextActive]}>
-              Top
+              {t('home.top_tab')}
             </Text>
           </TouchableOpacity>
 
@@ -497,7 +677,7 @@ export default function HomeScreen() {
               color={activeSection === 'new' ? '#10B981' : '#6B7280'}
             />
             <Text style={[styles.tabText, activeSection === 'new' && styles.tabTextActive]}>
-              Nouveau
+              {t('home.new_tab')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -529,19 +709,20 @@ export default function HomeScreen() {
         style={styles.ctaSection}
       >
         <Ionicons name="rocket" size={48} color="white" />
-        <Text style={styles.ctaTitle}>Prêt à développer votre business ?</Text>
+        <Text style={styles.ctaTitle}>{t('home.cta_title')}</Text>
         <Text style={styles.ctaSubtitle}>
-          Rejoignez des milliers de vendeurs qui réussissent
+          {t('home.cta_subtitle')}
         </Text>
         <TouchableOpacity
           style={styles.ctaButton}
           onPress={() => router.push('/register')}
         >
-          <Text style={styles.ctaButtonText}>Créer un compte gratuit</Text>
+          <Text style={styles.ctaButtonText}>{t('home.cta_button')}</Text>
           <Ionicons name="arrow-forward" size={20} color="#10B981" />
         </TouchableOpacity>
       </LinearGradient>
     </ScrollView>
+    </View>
   );
 }
 
@@ -549,6 +730,153 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+  },
+  header: {
+    paddingTop: 50,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  logoContainer: {
+    flex: 1,
+  },
+  logoText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  logoSubtext: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 2,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  flagIcon: {
+    fontSize: 24,
+  },
+  currencyText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  notificationBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  searchPlaceholder: {
+    flex: 1,
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  scrollContent: {
+    flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 24,
+    paddingBottom: 40,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    gap: 16,
+  },
+  languageOptionActive: {
+    backgroundColor: '#F0FDF4',
+  },
+  languageFlag: {
+    fontSize: 32,
+  },
+  languageName: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1F2937',
+    fontWeight: '500',
+  },
+  currencyOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  currencyOptionActive: {
+    backgroundColor: '#F0FDF4',
+  },
+  currencyInfo: {
+    flex: 1,
+  },
+  currencyCode: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 2,
+  },
+  currencyName: {
+    fontSize: 14,
+    color: '#6B7280',
   },
   hero: {
     padding: 24,

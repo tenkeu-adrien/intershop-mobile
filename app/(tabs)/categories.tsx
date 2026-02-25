@@ -13,21 +13,15 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useProductsStore } from '../../src/store/productsStore';
 import { ProductCardSkeleton } from '../../src/components/Skeleton';
 import { Product } from '../../src/types';
 
 const { width } = Dimensions.get('window');
 
-const CATEGORIES = [
-  { id: 'all', name: 'Tous', emoji: '🌟', color: '#10B981' },
-  { id: 'ecommerce', name: 'E-commerce', emoji: '🛍️', color: '#3B82F6' },
-  { id: 'restaurant', name: 'Restaurants', emoji: '🍽️', color: '#F59E0B' },
-  { id: 'hotel', name: 'Hôtels', emoji: '🏨', color: '#8B5CF6' },
-  { id: 'dating', name: 'Rencontres', emoji: '💕', color: '#EC4899' },
-];
-
 export default function CategoriesScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams();
   const { products, loading, fetchProducts, searchProducts, loadMore, hasMore } = useProductsStore();
@@ -35,6 +29,14 @@ export default function CategoriesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  const CATEGORIES = [
+    { id: 'all', name: t('categories.all'), emoji: '🌟', color: '#10B981' },
+    { id: 'ecommerce', name: t('categories.ecommerce'), emoji: '🛍️', color: '#3B82F6' },
+    { id: 'restaurant', name: t('categories.restaurants'), emoji: '🍽️', color: '#F59E0B' },
+    { id: 'hotel', name: t('categories.hotels'), emoji: '🏨', color: '#8B5CF6' },
+    { id: 'dating', name: t('categories.dating'), emoji: '💕', color: '#EC4899' },
+  ];
 
   useEffect(() => {
     if (selectedCategory === 'all') {
@@ -118,7 +120,7 @@ export default function CategoriesScreen() {
         
         {item.moq > 1 && (
           <Text style={styles.moqText}>
-            MOQ: {item.moq} unités
+            {t('categories.moq')}: {item.moq.toString()} {t('categories.units')}
           </Text>
         )}
       </View>
@@ -144,7 +146,7 @@ export default function CategoriesScreen() {
           <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Rechercher..."
+            placeholder={t('categories.search_placeholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onSubmitEditing={handleSearch}
@@ -190,7 +192,7 @@ export default function CategoriesScreen() {
       {/* Header count */}
       <View style={styles.productsHeader}>
         <Text style={styles.productsCount}>
-          {products.length} produit{products.length > 1 ? 's' : ''}
+          {products.length.toString()} {products.length > 1 ? t('categories.products_count_plural') : t('categories.products_count')}
         </Text>
       </View>
     </>
@@ -220,7 +222,7 @@ export default function CategoriesScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyEmoji}>📦</Text>
-              <Text style={styles.emptyText}>Aucun produit trouvé</Text>
+              <Text style={styles.emptyText}>{t('categories.no_products')}</Text>
             </View>
           }
           refreshControl={

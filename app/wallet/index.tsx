@@ -11,11 +11,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '../../src/store/authStore';
 import { useWalletStore } from '../../src/store/walletStore';
 
 export default function WalletPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuthStore();
   const { wallet, transactions, loading, error, fetchWallet, fetchTransactions } = useWalletStore();
@@ -47,17 +49,35 @@ export default function WalletPage() {
     const dateObj = date instanceof Date ? date : date.toDate?.() || new Date(date);
     const seconds = Math.floor((new Date().getTime() - dateObj.getTime()) / 1000);
     
-    if (seconds < 60) return 'À l\'instant';
-    if (seconds < 3600) return `Il y a ${Math.floor(seconds / 60)} min`;
-    if (seconds < 86400) return `Il y a ${Math.floor(seconds / 3600)} h`;
-    return `Il y a ${Math.floor(seconds / 86400)} j`;
+    if (seconds < 60) return t('wallet.just_now');
+    if (seconds < 3600) return t('wallet.minutes_ago', { count: Math.floor(seconds / 60) });
+    if (seconds < 86400) return t('wallet.hours_ago', { count: Math.floor(seconds / 3600) });
+    return t('wallet.days_ago', { count: Math.floor(seconds / 86400) });
+  };
+
+  const getTransactionTypeLabel = (type: string) => {
+    switch (type) {
+      case 'deposit': return t('wallet.deposit');
+      case 'withdrawal': return t('wallet.withdraw');
+      case 'transfer': return t('wallet.transfer');
+      default: return t('wallet.transaction');
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'completed': return t('wallet.status_completed');
+      case 'pending': return t('wallet.status_pending');
+      case 'failed': return t('wallet.status_failed');
+      default: return status;
+    }
   };
 
   if (loading && !wallet) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#10B981" />
-        <Text style={styles.loadingText}>Chargement...</Text>
+        <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </View>
     );
   }
@@ -88,8 +108,8 @@ export default function WalletPage() {
         <View style={styles.headerContent}>
           <Ionicons name="wallet" size={32} color="#10B981" />
           <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>Mon Portefeuille</Text>
-            <Text style={styles.headerSubtitle}>Gérez votre solde et vos transactions</Text>
+            <Text style={styles.headerTitle}>{t('wallet.my_wallet')}</Text>
+            <Text style={styles.headerSubtitle}>{t('wallet.manage_balance')}</Text>
           </View>
         </View>
       </View>
@@ -111,7 +131,7 @@ export default function WalletPage() {
       >
         <View style={styles.balanceContainer}>
           <View>
-            <Text style={styles.balanceLabel}>Solde disponible</Text>
+            <Text style={styles.balanceLabel}>{t('wallet.available_balance')}</Text>
             <Text style={styles.balanceAmount}>
               {wallet?.balance.toLocaleString('fr-FR') || '0'} FCFA
             </Text>
@@ -121,7 +141,7 @@ export default function WalletPage() {
 
         {wallet && wallet.pendingBalance > 0 && (
           <View style={styles.pendingBalance}>
-            <Text style={styles.pendingLabel}>Solde en attente</Text>
+            <Text style={styles.pendingLabel}>{t('wallet.pending_balance')}</Text>
             <Text style={styles.pendingAmount}>
               {wallet.pendingBalance.toLocaleString('fr-FR')} FCFA
             </Text>
@@ -135,7 +155,7 @@ export default function WalletPage() {
             onPress={() => router.push('/wallet/deposit')}
           >
             <Ionicons name="arrow-down-circle" size={20} color="#10B981" />
-            <Text style={[styles.actionText, { color: '#10B981' }]}>Déposer</Text>
+            <Text style={[styles.actionText, { color: '#10B981' }]}>{t('wallet.deposit')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -143,7 +163,7 @@ export default function WalletPage() {
             onPress={() => router.push('/wallet/transfer')}
           >
             <Ionicons name="swap-horizontal" size={20} color="#FBBF24" />
-            <Text style={[styles.actionText, { color: '#FBBF24' }]}>Transférer</Text>
+            <Text style={[styles.actionText, { color: '#FBBF24' }]}>{t('wallet.transfer')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -151,7 +171,7 @@ export default function WalletPage() {
             onPress={() => router.push('/wallet/withdraw')}
           >
             <Ionicons name="arrow-up-circle" size={20} color="#1F2937" />
-            <Text style={[styles.actionText, { color: '#1F2937' }]}>Retirer</Text>
+            <Text style={[styles.actionText, { color: '#1F2937' }]}>{t('wallet.withdraw')}</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -164,8 +184,8 @@ export default function WalletPage() {
         >
           <Ionicons name="time" size={24} color="#6B7280" />
           <View style={styles.secondaryButtonText}>
-            <Text style={styles.secondaryButtonTitle}>Historique</Text>
-            <Text style={styles.secondaryButtonSubtitle}>Voir toutes les transactions</Text>
+            <Text style={styles.secondaryButtonTitle}>{t('wallet.history')}</Text>
+            <Text style={styles.secondaryButtonSubtitle}>{t('wallet.view_all_transactions')}</Text>
           </View>
         </TouchableOpacity>
 
@@ -175,20 +195,20 @@ export default function WalletPage() {
         >
           <Ionicons name="settings" size={24} color="#6B7280" />
           <View style={styles.secondaryButtonText}>
-            <Text style={styles.secondaryButtonTitle}>Paramètres</Text>
-            <Text style={styles.secondaryButtonSubtitle}>Code PIN et sécurité</Text>
+            <Text style={styles.secondaryButtonTitle}>{t('wallet.settings')}</Text>
+            <Text style={styles.secondaryButtonSubtitle}>{t('wallet.pin_security')}</Text>
           </View>
         </TouchableOpacity>
       </View>
 
       {/* Transactions récentes */}
       <View style={styles.transactionsContainer}>
-        <Text style={styles.transactionsTitle}>Transactions récentes</Text>
+        <Text style={styles.transactionsTitle}>{t('wallet.recent_transactions')}</Text>
 
         {transactions.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="time-outline" size={48} color="#D1D5DB" />
-            <Text style={styles.emptyText}>Aucune transaction pour le moment</Text>
+            <Text style={styles.emptyText}>{t('wallet.no_transactions')}</Text>
           </View>
         ) : (
           <>
@@ -232,9 +252,7 @@ export default function WalletPage() {
                   </View>
                   <View>
                     <Text style={styles.transactionDescription}>
-                      {transaction.description || 
-                       (transaction.type === 'deposit' ? 'Dépôt' :
-                        transaction.type === 'withdrawal' ? 'Retrait' : 'Transaction')}
+                      {transaction.description || getTransactionTypeLabel(transaction.type)}
                     </Text>
                     <Text style={styles.transactionDate}>
                       {formatTimeAgo(transaction.createdAt)}
@@ -274,13 +292,7 @@ export default function WalletPage() {
                       },
                     ]}
                   >
-                    {transaction.status === 'completed'
-                      ? 'Complété'
-                      : transaction.status === 'pending'
-                      ? 'En attente'
-                      : transaction.status === 'failed'
-                      ? 'Échoué'
-                      : transaction.status}
+                    {getStatusLabel(transaction.status)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -291,7 +303,7 @@ export default function WalletPage() {
                 style={styles.viewAllButton}
                 onPress={() => router.push('/wallet/history')}
               >
-                <Text style={styles.viewAllText}>Voir toutes les transactions</Text>
+                <Text style={styles.viewAllText}>{t('wallet.view_all_transactions')}</Text>
               </TouchableOpacity>
             )}
           </>

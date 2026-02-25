@@ -17,6 +17,7 @@ import { useAuthStore } from '../store/authStore';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import api from '../services/api';
+import LanguageSelector from '../components/LanguageSelector';
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
@@ -110,6 +111,11 @@ export default function RegisterScreen() {
           end={{ x: 1, y: 0 }}
           style={styles.header}
         >
+          {/* Language Selector */}
+          <View style={styles.languageSelectorContainer}>
+            <LanguageSelector compact />
+          </View>
+
           <Text style={styles.logo}>🛍️</Text>
           <Text style={styles.title}>{t('auth.register')}</Text>
           <Text style={styles.subtitle}>{t('auth.subtitle_register', "Rejoignez InterShop aujourd'hui")}</Text>
@@ -281,6 +287,13 @@ const styles = StyleSheet.create({
     padding: 40,
     paddingTop: 60,
     alignItems: 'center',
+    position: 'relative',
+  },
+  languageSelectorContainer: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 10,
   },
   logo: {
     fontSize: 48,

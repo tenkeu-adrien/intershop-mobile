@@ -1,13 +1,15 @@
-import algoliasearch from 'algoliasearch';
+// Algolia is disabled for mobile - use API backend instead
+// import algoliasearch from 'algoliasearch';
 
 const appId = process.env.EXPO_PUBLIC_ALGOLIA_APP_ID || '';
 const searchApiKey = process.env.EXPO_PUBLIC_ALGOLIA_SEARCH_KEY || '';
 
 // Client Algolia (clé publique - recherche uniquement)
-const client = algoliasearch(appId, searchApiKey);
+// Disabled for React Native compatibility - use API backend instead
+const client = null; // algoliasearch(appId, searchApiKey);
 
 // Index des produits
-const productsIndex = client.initIndex('products');
+const productsIndex = null; // client?.initIndex('products');
 
 export interface AlgoliaProduct {
     objectID: string;
@@ -57,30 +59,9 @@ export async function searchProducts(
         ? [`category:${category}`]
         : [];
 
-    try {
-        const result = await productsIndex.search<AlgoliaProduct>(query, {
-            hitsPerPage: limit,
-            page,
-            facetFilters,
-            attributesToRetrieve: [
-                'objectID', 'name', 'description', 'images', 'prices',
-                'category', 'moq', 'rating', 'reviewCount', 'sales',
-                'stock', 'country', 'deliveryTime', 'fournisseurId',
-            ],
-            attributesToHighlight: ['name', 'description'],
-        });
-
-        return {
-            hits: result.hits.map((hit) => ({ ...hit, id: hit.objectID })),
-            total: result.nbHits,
-            hasMore: (page + 1) * limit < result.nbHits,
-            currentPage: page,
-            totalPages: result.nbPages,
-        };
-    } catch (error) {
-        console.error('❌ [Algolia] Erreur de recherche:', error);
-        return { hits: [], total: 0, hasMore: false, currentPage: 0, totalPages: 0 };
-    }
+    // Algolia disabled for React Native - return empty results
+    console.warn('⚠️ [Algolia] Service désactivé pour React Native. Utiliser l\'API backend à la place.');
+    return { hits: [], total: 0, hasMore: false, currentPage: 0, totalPages: 0 };
 }
 
 /**
@@ -99,13 +80,7 @@ export async function searchByCategory(
 export async function getSearchSuggestions(query: string): Promise<string[]> {
     if (query.length < 2) return [];
 
-    try {
-        const result = await productsIndex.search<AlgoliaProduct>(query, {
-            hitsPerPage: 5,
-            attributesToRetrieve: ['name'],
-        });
-        return result.hits.map((hit) => hit.name);
-    } catch {
-        return [];
-    }
+    // Algolia disabled for React Native
+    console.warn('⚠️ [Algolia] Service désactivé pour React Native.');
+    return [];
 }

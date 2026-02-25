@@ -10,12 +10,14 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useCartStore } from '../../src/store/cartStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { useCurrencyStore } from '../../src/store/currencyStore';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function CartScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuthStore();
   const { items, updateQuantity, removeFromCart, getTotal, loadCart } = useCartStore();
@@ -27,12 +29,12 @@ export default function CartScreen() {
 
   const handleRemoveItem = (productId: string, productName: string) => {
     Alert.alert(
-      'Supprimer du panier',
-      `Voulez-vous retirer "${productName}" du panier ?`,
+      t('cart.remove_confirm'),
+      t('cart.remove_confirm_message'),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => removeFromCart(productId),
         },
@@ -43,12 +45,12 @@ export default function CartScreen() {
   const handleCheckout = () => {
     if (!user) {
       Alert.alert(
-        'Connexion requise',
-        'Vous devez être connecté pour passer commande',
+        t('cart.login_required'),
+        t('cart.login_required_message'),
         [
-          { text: 'Annuler', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Se connecter',
+            text: t('auth.sign_in'),
             onPress: () => router.push('/login'),
           },
         ]
@@ -108,15 +110,15 @@ export default function CartScreen() {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="cart" size={80} color="#D1D5DB" />
-        <Text style={styles.emptyText}>Votre panier est vide</Text>
+        <Text style={styles.emptyText}>{t('cart.empty')}</Text>
         <Text style={styles.emptySubtext}>
-          Ajoutez des produits pour commencer vos achats
+          {t('cart.empty_subtitle')}
         </Text>
         <TouchableOpacity
           style={styles.shopButton}
           onPress={() => router.push('/')}
         >
-          <Text style={styles.shopButtonText}>Découvrir les produits</Text>
+          <Text style={styles.shopButtonText}>{t('cart.discover_products')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -136,17 +138,17 @@ export default function CartScreen() {
         contentContainerStyle={styles.listContent}
         ListFooterComponent={
           <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Résumé de la commande</Text>
+            <Text style={styles.summaryTitle}>{t('cart.summary')}</Text>
 
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Sous-total</Text>
+              <Text style={styles.summaryLabel}>{t('cart.subtotal')}</Text>
               <Text style={styles.summaryValue}>
                 {formatPrice(convertPrice(total))}
               </Text>
             </View>
 
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Frais de livraison</Text>
+              <Text style={styles.summaryLabel}>{t('cart.shipping')}</Text>
               <Text style={styles.summaryValue}>
                 {formatPrice(convertPrice(shippingFee))}
               </Text>
@@ -155,7 +157,7 @@ export default function CartScreen() {
             <View style={styles.divider} />
 
             <View style={styles.summaryRow}>
-              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalLabel}>{t('cart.total')}</Text>
               <Text style={styles.totalValue}>
                 {formatPrice(convertPrice(finalTotal))}
               </Text>
@@ -177,7 +179,7 @@ export default function CartScreen() {
             style={styles.checkoutGradient}
           >
             <Text style={styles.checkoutButtonText}>
-              Commander • {formatPrice(convertPrice(finalTotal))}
+              {t('cart.checkout')} • {formatPrice(convertPrice(finalTotal))}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

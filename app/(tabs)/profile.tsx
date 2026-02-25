@@ -8,11 +8,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../src/store/authStore';
 import { useNotificationsStore } from '../../src/store/notificationsStore';
 import { useEffect } from 'react';
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user, signOut } = useAuthStore();
   const { unreadCount, fetchUnreadCount } = useNotificationsStore();
@@ -30,19 +32,19 @@ export default function ProfileScreen() {
 
   const handleSignOut = () => {
     Alert.alert(
-      'Déconnexion',
-      'Voulez-vous vraiment vous déconnecter ?',
+      t('profile.logout'),
+      t('profile.logout_confirm'),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Déconnexion',
+          text: t('profile.logout'),
           style: 'destructive',
           onPress: async () => {
             try {
               await signOut();
               router.push('/login');
             } catch (error) {
-              Alert.alert('Erreur', 'Impossible de se déconnecter');
+              Alert.alert(t('common.error'), t('errors.server_error'));
             }
           },
         },
@@ -55,21 +57,21 @@ export default function ProfileScreen() {
       <View style={styles.container}>
         <View style={styles.loginPrompt}>
           <Ionicons name="person" size={80} color="#D1D5DB" />
-          <Text style={styles.loginPromptTitle}>Connectez-vous</Text>
+          <Text style={styles.loginPromptTitle}>{t('profile.login_prompt')}</Text>
           <Text style={styles.loginPromptText}>
-            Accédez à votre profil, vos commandes et bien plus
+            {t('profile.login_prompt_text')}
           </Text>
           <TouchableOpacity
             style={styles.loginButton}
             onPress={() => router.push('/login')}
           >
-            <Text style={styles.loginButtonText}>Se connecter</Text>
+            <Text style={styles.loginButtonText}>{t('profile.login')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.registerButton}
             onPress={() => router.push('/register')}
           >
-            <Text style={styles.registerButtonText}>Créer un compte</Text>
+            <Text style={styles.registerButtonText}>{t('profile.register')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -85,7 +87,7 @@ export default function ProfileScreen() {
             <Ionicons name="person" size={40} color="#FFF" />
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>{user.displayName || 'Utilisateur'}</Text>
+            <Text style={styles.userName}>{user.displayName || t('profile.user')}</Text>
             <Text style={styles.userEmail}>{user.email}</Text>
             <View style={styles.roleBadge}>
               <Text style={styles.roleText}>{user.role.toUpperCase()}</Text>
@@ -99,7 +101,7 @@ export default function ProfileScreen() {
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/notifications')}>
           <View style={styles.menuItemLeft}>
             <Ionicons name="notifications" size={24} color="#8B5CF6" />
-            <Text style={styles.menuItemText}>Notifications</Text>
+            <Text style={styles.menuItemText}>{t('profile.notifications')}</Text>
             {unreadCount > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
@@ -112,7 +114,7 @@ export default function ProfileScreen() {
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/wallet')}>
           <View style={styles.menuItemLeft}>
             <Ionicons name="wallet" size={24} color="#10B981" />
-            <Text style={styles.menuItemText}>Mon Portefeuille</Text>
+            <Text style={styles.menuItemText}>{t('profile.my_wallet')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
         </TouchableOpacity>
@@ -120,7 +122,7 @@ export default function ProfileScreen() {
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/orders')}>
           <View style={styles.menuItemLeft}>
             <Ionicons name="receipt" size={24} color="#3B82F6" />
-            <Text style={styles.menuItemText}>Mes Commandes</Text>
+            <Text style={styles.menuItemText}>{t('profile.my_orders')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
         </TouchableOpacity>
@@ -128,7 +130,7 @@ export default function ProfileScreen() {
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/favorites')}>
           <View style={styles.menuItemLeft}>
             <Ionicons name="heart" size={24} color="#EF4444" />
-            <Text style={styles.menuItemText}>Mes Favoris</Text>
+            <Text style={styles.menuItemText}>{t('profile.my_favorites')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
         </TouchableOpacity>
@@ -136,7 +138,7 @@ export default function ProfileScreen() {
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/addresses')}>
           <View style={styles.menuItemLeft}>
             <Ionicons name="location" size={24} color="#F59E0B" />
-            <Text style={styles.menuItemText}>Mes Adresses</Text>
+            <Text style={styles.menuItemText}>{t('profile.my_addresses')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
         </TouchableOpacity>
@@ -147,7 +149,7 @@ export default function ProfileScreen() {
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/settings')}>
           <View style={styles.menuItemLeft}>
             <Ionicons name="settings" size={24} color="#6B7280" />
-            <Text style={styles.menuItemText}>Paramètres</Text>
+            <Text style={styles.menuItemText}>{t('profile.settings')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
         </TouchableOpacity>
@@ -155,7 +157,7 @@ export default function ProfileScreen() {
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/support')}>
           <View style={styles.menuItemLeft}>
             <Ionicons name="help-circle" size={24} color="#6B7280" />
-            <Text style={styles.menuItemText}>Aide & Support</Text>
+            <Text style={styles.menuItemText}>{t('profile.help')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
         </TouchableOpacity>
@@ -163,7 +165,7 @@ export default function ProfileScreen() {
         <TouchableOpacity style={styles.menuItem} onPress={handleSignOut}>
           <View style={styles.menuItemLeft}>
             <Ionicons name="log-out" size={24} color="#EF4444" />
-            <Text style={[styles.menuItemText, { color: '#EF4444' }]}>Déconnexion</Text>
+            <Text style={[styles.menuItemText, { color: '#EF4444' }]}>{t('profile.logout')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
         </TouchableOpacity>

@@ -13,11 +13,14 @@ const resources = {
     ar: {
         translation: translations.ar,
     },
+    sw: {
+        translation: translations.sw,
+    },
 };
 
 // Détecter la langue de l'appareil
 const deviceLocale = Localization.getLocales?.()?.[0]?.languageCode ?? 'fr';
-const supportedLocales = ['fr', 'en', 'ar'];
+const supportedLocales = ['fr', 'en', 'ar', 'sw'];
 const defaultLanguage = supportedLocales.includes(deviceLocale) ? deviceLocale : 'fr';
 
 i18n

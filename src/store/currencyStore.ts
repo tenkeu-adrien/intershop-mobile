@@ -50,6 +50,10 @@ interface CurrencyState {
   userCountry: string | null; // Code pays de l'utilisateur
   hasDetectedOnce: boolean; // Indique si la détection a déjà été faite
 
+  // Getters
+  currency: SupportedCurrency; // Alias pour selectedCurrency
+  currencies: Currency[]; // Liste des devises disponibles
+
   // Actions
   setCurrency: (currency: SupportedCurrency, isManual?: boolean) => void;
   detectCurrencyFromLocation: () => Promise<void>;
@@ -70,6 +74,14 @@ export const useCurrencyStore = create<CurrencyState>()(
       isAutoDetected: false,
       userCountry: null,
       hasDetectedOnce: false,
+
+      // Getters
+      get currency() {
+        return get().selectedCurrency;
+      },
+      get currencies() {
+        return Object.values(SUPPORTED_CURRENCIES);
+      },
 
       setCurrency: (currency: SupportedCurrency, isManual = true) => {
         set({ 

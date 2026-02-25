@@ -12,10 +12,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useHotelsStore } from '../../src/store/hotelsStore';
 import { HotelCardSkeleton } from '../../src/components/Skeleton';
 
 export default function HotelsPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { hotels, loading, fetchHotels } = useHotelsStore();
   const [refreshing, setRefreshing] = useState(false);
@@ -72,7 +75,7 @@ export default function HotelsPage() {
         <View style={styles.detailsRow}>
           <View style={styles.detailItem}>
             <Ionicons name="location-outline" size={14} color="#6b7280" />
-            <Text style={styles.detailText}>{item.location?.city || 'Non spécifié'}</Text>
+            <Text style={styles.detailText}>{item.location?.city || t('hotels.not_specified')}</Text>
           </View>
         </View>
         {item.hotelData?.amenities && item.hotelData.amenities.length > 0 && (
@@ -86,11 +89,11 @@ export default function HotelsPage() {
         )}
         {item.prices && item.prices.length > 0 && (
           <View style={styles.priceContainer}>
-            <Text style={styles.priceLabel}>À partir de</Text>
+            <Text style={styles.priceLabel}>{t('hotels.from')}</Text>
             <Text style={styles.priceValue}>
               ${item.prices[0].price.toFixed(2)}
             </Text>
-            <Text style={styles.priceUnit}>/nuit</Text>
+            <Text style={styles.priceUnit}>{t('hotels.per_night')}</Text>
           </View>
         )}
       </View>
@@ -100,16 +103,16 @@ export default function HotelsPage() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
+        <LinearGradient colors={['#8B5CF6', '#7C3AED']} style={styles.header}>
           <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#111827" />
+            <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
-            <Ionicons name="bed" size={24} color="#8b5cf6" />
-            <Text style={styles.headerTitle}>Hôtels</Text>
+            <Ionicons name="bed" size={24} color="white" />
+            <Text style={styles.headerTitle}>{t('hotels.title')}</Text>
           </View>
           <View style={styles.headerButton} />
-        </View>
+        </LinearGradient>
         <View style={styles.listContainer}>
           <HotelCardSkeleton />
           <HotelCardSkeleton />
@@ -121,49 +124,40 @@ export default function HotelsPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
+      <LinearGradient colors={['#8B5CF6', '#7C3AED']} style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Ionicons name="bed" size={24} color="#8b5cf6" />
-          <Text style={styles.headerTitle}>Hôtels</Text>
+          <Ionicons name="bed" size={24} color="white" />
+          <Text style={styles.headerTitle}>{t('hotels.title')}</Text>
         </View>
         <View style={styles.headerButton} />
-      </View>
+      </LinearGradient>
 
-      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
           <Ionicons name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Rechercher un hôtel..."
+            placeholder={t('hotels.search_placeholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#9ca3af"
           />
         </View>
-        <TouchableOpacity
-          style={styles.nearMeButton}
-          onPress={() => {}}
-        >
+        <TouchableOpacity style={styles.nearMeButton} onPress={() => {}}>
           <Ionicons name="navigate" size={20} color="#fff" />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setShowFilters(!showFilters)}
-        >
+        <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilters(!showFilters)}>
           <Ionicons name="options" size={20} color="#374151" />
         </TouchableOpacity>
       </View>
 
-      {/* Filters */}
       {showFilters && (
         <View style={styles.filtersContainer}>
           <View style={styles.filterRow}>
-            <Text style={styles.filterLabel}>Étoiles</Text>
+            <Text style={styles.filterLabel}>{t('hotels.stars')}</Text>
             <View style={styles.starButtons}>
               {[null, 1, 2, 3, 4, 5].map((stars) => (
                 <TouchableOpacity
@@ -172,7 +166,7 @@ export default function HotelsPage() {
                   onPress={() => setStarFilter(stars)}
                 >
                   <Text style={[styles.starButtonText, starFilter === stars && styles.starButtonTextActive]}>
-                    {stars ? `${stars}★` : 'Tous'}
+                    {stars ? `${stars}★` : t('common.all')}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -181,23 +175,16 @@ export default function HotelsPage() {
         </View>
       )}
 
-      {/* Hotels List */}
       <FlatList
         data={filteredHotels}
         renderItem={renderHotel}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#8b5cf6']}
-          />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#8b5cf6']} />}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="bed-outline" size={64} color="#d1d5db" />
-            <Text style={styles.emptyText}>Aucun hôtel trouvé</Text>
+            <Text style={styles.emptyText}>{t('hotels.no_hotels')}</Text>
           </View>
         }
       />
@@ -228,9 +215,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   headerButton: {
     width: 40,
@@ -246,7 +230,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#111827',
+    color: 'white',
   },
   searchContainer: {
     flexDirection: 'row',

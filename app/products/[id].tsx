@@ -15,18 +15,22 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { useCartStore } from '../../src/store/cartStore';
 import { useProductsStore } from '../../src/store/productsStore';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { useCurrencyStore } from '../../src/store/currencyStore';
+import { useAuthStore } from '../../src/store/authStore';
 import { Product } from '../../src/types';
 import { ProductChatActions } from '../../src/components/ProductChatActions';
 
 const { width } = Dimensions.get('window');
 
 export default function ProductDetailScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuthStore();
   const { addToCart } = useCartStore();
   const { fetchProductById, fetchSimilarProducts } = useProductsStore();
   const { convertPrice, formatPrice } = useCurrencyStore();
@@ -65,7 +69,7 @@ export default function ProductDetailScreen() {
       const productData = await fetchProductById(params.id as string);
       
       if (!productData) {
-        Alert.alert('Erreur', 'Produit non trouvé');
+        Alert.alert(t('product_detail.error'), t('product_detail.not_found'));
         router.back();
         return;
       }
@@ -78,20 +82,20 @@ export default function ProductDetailScreen() {
           // TODO: Créer un endpoint API pour récupérer les infos du fournisseur
           // Pour l'instant, on utilise des données par défaut
           setFournisseur({
-            name: 'Vendeur',
+            name: t('product_detail.seller'),
             photo: undefined,
           });
         } catch (fournisseurError) {
           console.error('Error loading fournisseur:', fournisseurError);
           setFournisseur({
-            name: 'Vendeur',
+            name: t('product_detail.seller'),
             photo: undefined,
           });
         }
       }
     } catch (error) {
       console.error('Error loading product:', error);
-      Alert.alert('Erreur', 'Impossible de charger le produit');
+      Alert.alert(t('product_detail.error'), t('product_detail.unable_to_load'));
       router.back();
     } finally {
       setLoading(false);
@@ -106,11 +110,11 @@ export default function ProductDetailScreen() {
     addToCart(product, quantity);
 
     Alert.alert(
-      'Ajouté au panier',
-      `${product.name} a été ajouté à votre panier`,
+      t('product_detail.added_to_cart'),
+      t('product_detail.added_to_cart_message', { name: product.name }),
       [
-        { text: 'Continuer', style: 'cancel' },
-        { text: 'Voir le panier', onPress: () => router.push('/(tabs)/cart') },
+        { text: t('product_detail.continue'), style: 'cancel' },
+        { text: t('product_detail.view_cart'), onPress: () => router.push('/(tabs)/cart') },
       ]
     );
   };
@@ -136,10 +140,10 @@ export default function ProductDetailScreen() {
 
     if (isInWishlist) {
       await removeFromFavorites(product.id);
-      Alert.alert('Retiré des favoris', 'Le produit a été retiré de vos favoris');
+      Alert.alert(t('product_detail.removed_from_favorites'), t('product_detail.removed_from_favorites_message'));
     } else {
       await addToFavorites(product);
-      Alert.alert('Ajouté aux favoris', 'Le produit a été ajouté à vos favoris');
+      Alert.alert(t('product_detail.added_to_favorites'), t('product_detail.added_to_favorites_message'));
     }
   };
 
@@ -165,7 +169,7 @@ export default function ProductDetailScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#10B981" />
-        <Text style={styles.loadingText}>Chargement...</Text>
+        <Text style={styles.loadingText}>{t('product_detail.loading')}</Text>
       </View>
     );
   }
@@ -249,9 +253,9 @@ export default function ProductDetailScreen() {
               ))}
             </View>
             <Text style={styles.ratingText}>
-              {product.rating.toFixed(1)} ({product.reviewCount} avis)
+              {product.rating.toFixed(1)} ({product.reviewCount.toString()} {t('product_detail.reviews')})
             </Text>
-            <Text style={styles.salesText}>• {product.sales} vendus</Text>
+            <Text style={styles.salesText}>• {product.sales.toString()} {t('product_detail.sold')}</Text>
           </View>
 
           {/* Price */}
@@ -259,19 +263,19 @@ export default function ProductDetailScreen() {
             <Text style={styles.price}>
               {formatPrice(convertPrice(currentPrice.price))}
             </Text>
-            <Text style={styles.priceUnit}>/ unité</Text>
+            <Text style={styles.priceUnit}>{t('product_detail.per_unit')}</Text>
           </View>
 
           {product.moq > 1 && (
             <Text style={styles.moqText}>
-              Quantité minimum: {product.moq} unités
+              {t('product_detail.min_quantity', { moq: product.moq })}
             </Text>
           )}
 
           {/* Price Tiers */}
           {product.prices.length > 1 && (
             <View style={styles.priceTiersContainer}>
-              <Text style={styles.sectionTitle}>Prix par quantité:</Text>
+              <Text style={styles.sectionTitle}>{t('product_detail.price_per_quantity')}</Text>
               <View style={styles.priceTiersGrid}>
                 {product.prices.map((tier, index) => (
                   <TouchableOpacity
@@ -283,8 +287,8 @@ export default function ProductDetailScreen() {
                     ]}
                   >
                     <Text style={styles.priceTierQuantity}>
-                      {tier.minQuantity}
-                      {tier.maxQuantity ? `-${tier.maxQuantity}` : '+'} unités
+                      {tier.minQuantity.toString()}
+                      {tier.maxQuantity ? `-${tier.maxQuantity}` : '+'} {t('product_detail.units')}
                     </Text>
                     <Text style={styles.priceTierPrice}>
                       {formatPrice(convertPrice(tier.price))}
@@ -297,7 +301,7 @@ export default function ProductDetailScreen() {
 
           {/* Quantity Selector */}
           <View style={styles.quantityContainer}>
-            <Text style={styles.sectionTitle}>Quantité:</Text>
+            <Text style={styles.sectionTitle}>{t('product_detail.quantity')}</Text>
             <View style={styles.quantitySelector}>
               <TouchableOpacity
                 onPress={() => setQuantity(Math.max(product.moq || 1, quantity - 1))}
@@ -323,11 +327,11 @@ export default function ProductDetailScreen() {
                 <Ionicons name="add" size={20} color="#1F2937" />
               </TouchableOpacity>
 
-              <Text style={styles.stockText}>{product.stock} disponibles</Text>
+              <Text style={styles.stockText}>{product.stock.toString()} {t('product_detail.available')}</Text>
             </View>
 
             <Text style={styles.totalPrice}>
-              Total:{' '}
+              {t('product_detail.total')}{' '}
               <Text style={styles.totalPriceValue}>
                 {formatPrice(convertPrice(totalPrice))}
               </Text>
@@ -338,15 +342,15 @@ export default function ProductDetailScreen() {
           <View style={styles.featuresContainer}>
             <View style={styles.feature}>
               <Ionicons name="car" size={24} color="#10B981" />
-              <Text style={styles.featureText}>{product.deliveryTime || 'Livraison rapide'}</Text>
+              <Text style={styles.featureText}>{product.deliveryTime || t('product_detail.fast_delivery')}</Text>
             </View>
             <View style={styles.feature}>
               <Ionicons name="shield-checkmark" size={24} color="#10B981" />
-              <Text style={styles.featureText}>Protection acheteur</Text>
+              <Text style={styles.featureText}>{t('product_detail.buyer_protection')}</Text>
             </View>
             <View style={styles.feature}>
               <Ionicons name="chatbubbles" size={24} color="#10B981" />
-              <Text style={styles.featureText}>Support 24/7</Text>
+              <Text style={styles.featureText}>{t('product_detail.support_24_7')}</Text>
             </View>
           </View>
 
@@ -380,14 +384,14 @@ export default function ProductDetailScreen() {
 
           {/* Description */}
           <View style={styles.descriptionContainer}>
-            <Text style={styles.sectionTitle}>Description du produit</Text>
+            <Text style={styles.sectionTitle}>{t('product_detail.product_description')}</Text>
             <Text style={styles.description}>{product.description}</Text>
           </View>
 
           {/* Tags */}
           {product.tags && product.tags.length > 0 && (
             <View style={styles.tagsContainer}>
-              <Text style={styles.sectionTitle}>Tags</Text>
+              <Text style={styles.sectionTitle}>{t('product_detail.tags')}</Text>
               <View style={styles.tagsGrid}>
                 {product.tags.map((tag, index) => (
                   <View key={index} style={styles.tag}>
@@ -401,7 +405,7 @@ export default function ProductDetailScreen() {
           {/* Certifications */}
           {product.certifications && product.certifications.length > 0 && (
             <View style={styles.certificationsContainer}>
-              <Text style={styles.sectionTitle}>Certifications</Text>
+              <Text style={styles.sectionTitle}>{t('product_detail.certifications')}</Text>
               <View style={styles.certificationsGrid}>
                 {product.certifications.map((cert, index) => (
                   <View key={index} style={styles.certification}>
@@ -416,22 +420,22 @@ export default function ProductDetailScreen() {
           {/* Details */}
           <View style={styles.detailsContainer}>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Catégorie</Text>
+              <Text style={styles.detailLabel}>{t('product_detail.category')}</Text>
               <Text style={styles.detailValue}>{product.category}</Text>
             </View>
             {product.subcategory && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Sous-catégorie</Text>
+                <Text style={styles.detailLabel}>{t('product_detail.subcategory')}</Text>
                 <Text style={styles.detailValue}>{product.subcategory}</Text>
               </View>
             )}
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Pays d'origine</Text>
+              <Text style={styles.detailLabel}>{t('product_detail.origin_country')}</Text>
               <Text style={styles.detailValue}>{product.country}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Stock</Text>
-              <Text style={styles.detailValue}>{product.stock} unités</Text>
+              <Text style={styles.detailLabel}>{t('product_detail.stock')}</Text>
+              <Text style={styles.detailValue}>{product.stock.toString()} {t('product_detail.units')}</Text>
             </View>
           </View>
 
@@ -439,9 +443,9 @@ export default function ProductDetailScreen() {
           {similarProducts.length > 0 && (
             <View style={styles.similarProductsContainer}>
               <View style={styles.similarProductsHeader}>
-                <Text style={styles.sectionTitle}>Produits similaires</Text>
+                <Text style={styles.sectionTitle}>{t('product_detail.similar_products')}</Text>
                 <TouchableOpacity onPress={() => router.push(`/categories?category=${product.category}`)}>
-                  <Text style={styles.seeAllText}>Voir tout</Text>
+                  <Text style={styles.seeAllText}>{t('product_detail.see_all')}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -483,7 +487,7 @@ export default function ProductDetailScreen() {
           {loadingSimilar && (
             <View style={styles.loadingSimilar}>
               <ActivityIndicator size="small" color="#10B981" />
-              <Text style={styles.loadingSimilarText}>Chargement des produits similaires...</Text>
+              <Text style={styles.loadingSimilarText}>{t('product_detail.loading_similar')}</Text>
             </View>
           )}
         </View>
@@ -504,7 +508,7 @@ export default function ProductDetailScreen() {
           >
             <Ionicons name="cart" size={24} color="white" />
             <Text style={styles.addToCartText}>
-              {product.stock === 0 ? 'Rupture de stock' : 'Ajouter au panier'}
+              {product.stock === 0 ? t('product_detail.out_of_stock') : t('product_detail.add_to_cart')}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

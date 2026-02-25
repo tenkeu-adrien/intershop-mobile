@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../../src/store/authStore';
 import { useWalletStore } from '../../../src/store/walletStore';
 import { PaymentMethodSelector, FlexibleDepositForm } from '../../../src/components/wallet';
@@ -17,6 +18,7 @@ import type { PaymentMethod, FlexibleDepositData } from '../../../src/types/inde
 type Step = 'select' | 'form' | 'success';
 
 function DepositPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuthStore();
   
@@ -32,7 +34,7 @@ function DepositPage() {
 
   const handleSubmit = async (data: FlexibleDepositData) => {
     if (!user) {
-      Alert.alert('Erreur', 'Utilisateur non connecté');
+      Alert.alert(t('common.error'), t('wallet.user_not_connected'));
       return;
     }
 
@@ -40,7 +42,7 @@ function DepositPage() {
       await initiateFlexibleDeposit(user.id, data);
       setStep('success');
     } catch (error: any) {
-      Alert.alert('Erreur', error.message || 'Erreur lors du dépôt');
+      Alert.alert(t('common.error'), error.message || t('wallet.deposit_error'));
     }
   };
 
@@ -57,22 +59,21 @@ function DepositPage() {
             <Ionicons name="checkmark-circle" size={64} color="#10B981" />
           </View>
           
-          <Text style={styles.successTitle}>Demande envoyée !</Text>
+          <Text style={styles.successTitle}>{t('wallet.request_sent')}</Text>
           
           <Text style={styles.successText}>
-            Votre demande de dépôt a été envoyée avec succès.{'\n'}
-            Un administrateur va la vérifier et valider votre paiement.
+            {t('wallet.deposit_request_message')}
           </Text>
           
           <Text style={styles.successSubtext}>
-            Vous serez notifié par email une fois votre dépôt validé.
+            {t('wallet.email_notification')}
           </Text>
           
           <TouchableOpacity
             style={styles.successButton}
             onPress={() => router.push('/wallet/history')}
           >
-            <Text style={styles.successButtonText}>Voir l'historique</Text>
+            <Text style={styles.successButtonText}>{t('wallet.view_history')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -89,7 +90,7 @@ function DepositPage() {
         >
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Déposer des fonds</Text>
+        <Text style={styles.headerTitle}>{t('wallet.deposit_funds')}</Text>
       </View>
 
       {/* Indicateur d'étapes */}
@@ -100,7 +101,7 @@ function DepositPage() {
               <Text style={[styles.stepNumber, step === 'select' && styles.stepNumberActive]}>1</Text>
             </View>
             <Text style={[styles.stepLabel, step === 'select' && styles.stepLabelActive]}>
-              Choisir la méthode
+              {t('wallet.choose_method')}
             </Text>
           </View>
           
@@ -111,7 +112,7 @@ function DepositPage() {
               <Text style={[styles.stepNumber, step === 'form' && styles.stepNumberActive]}>2</Text>
             </View>
             <Text style={[styles.stepLabel, step === 'form' && styles.stepLabelActive]}>
-              Confirmer le dépôt
+              {t('wallet.confirm_deposit')}
             </Text>
           </View>
         </View>

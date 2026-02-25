@@ -15,11 +15,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { useChatStore } from '../../src/store/chatStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { ConversationType, getConversationTypeLabel, getConversationTypeIcon, getConversationTypeColor } from '../../src/types/chat';
 
 export default function ChatScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuthStore();
   const { conversations, loading, subscribeConversations, unsubscribeConversations, subscribeTotalUnreadCount, unsubscribeTotalUnreadCount } = useChatStore();
@@ -72,12 +74,12 @@ export default function ChatScreen() {
   };
 
   const filters: Array<{ type: ConversationType | 'all'; label: string; icon: string }> = [
-    { type: 'all', label: 'Tous', icon: '💬' },
-    { type: 'order', label: 'Commandes', icon: '🛒' },
-    { type: 'product_inquiry', label: 'Produits', icon: '📦' },
-    { type: 'dating_inquiry', label: 'Rencontres', icon: '❤️' },
-    { type: 'hotel_inquiry', label: 'Hôtels', icon: '🏨' },
-    { type: 'restaurant_inquiry', label: 'Restaurants', icon: '🍽️' },
+    { type: 'all', label: t('chat.all'), icon: '💬' },
+    { type: 'order', label: t('chat.orders'), icon: '🛒' },
+    { type: 'product_inquiry', label: t('chat.products'), icon: '📦' },
+    { type: 'dating_inquiry', label: t('chat.dating'), icon: '❤️' },
+    { type: 'hotel_inquiry', label: t('chat.hotels'), icon: '🏨' },
+    { type: 'restaurant_inquiry', label: t('chat.restaurants'), icon: '🍽️' },
   ];
 
   const renderConversation = ({ item }: any) => {
@@ -146,7 +148,7 @@ export default function ChatScreen() {
             {/* Contexte (commande, produit, etc.) */}
             {context?.metadata && (
               <Text style={styles.contextText} numberOfLines={1}>
-                {context.metadata.orderNumber && `📋 Commande #${context.metadata.orderNumber}`}
+                {context.metadata.orderNumber && `📋 ${t('chat.order')} #${context.metadata.orderNumber}`}
                 {context.metadata.productName && `📦 ${context.metadata.productName}`}
                 {context.metadata.profileName && `👤 ${context.metadata.profileName}`}
                 {context.metadata.hotelName && `🏨 ${context.metadata.hotelName}`}
@@ -163,7 +165,7 @@ export default function ChatScreen() {
                 ]}
                 numberOfLines={1}
               >
-                {lastMessage.senderId === user?.id && 'Vous: '}
+                {lastMessage.senderId === user?.id && `${t('chat.you')}: `}
                 {lastMessage.content}
               </Text>
             )}
@@ -177,12 +179,12 @@ export default function ChatScreen() {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="lock-closed" size={80} color="#D1D5DB" />
-        <Text style={styles.emptyText}>Connectez-vous pour voir vos messages</Text>
+        <Text style={styles.emptyText}>{t('chat.login_required')}</Text>
         <TouchableOpacity
           style={styles.loginButton}
           onPress={() => router.push('/login')}
         >
-          <Text style={styles.loginButtonText}>Se connecter</Text>
+          <Text style={styles.loginButtonText}>{t('chat.login')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -192,7 +194,7 @@ export default function ChatScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#10B981" />
-        <Text style={styles.loadingText}>Chargement...</Text>
+        <Text style={styles.loadingText}>{t('chat.loading')}</Text>
       </View>
     );
   }
@@ -208,8 +210,8 @@ export default function ChatScreen() {
               <Ionicons name="chatbubbles" size={32} color="#10B981" />
             </View>
             <View>
-              <Text style={styles.headerTitle}>Messages</Text>
-              <Text style={styles.headerSubtitle}>Vos conversations</Text>
+              <Text style={styles.headerTitle}>{t('chat.title')}</Text>
+              <Text style={styles.headerSubtitle}>{t('chat.your_conversations')}</Text>
             </View>
           </View>
         </View>
@@ -221,7 +223,7 @@ export default function ChatScreen() {
           <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Rechercher une conversation..."
+            placeholder={t('chat.search_placeholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#9CA3AF"
@@ -293,12 +295,12 @@ export default function ChatScreen() {
             {searchQuery ? '🔍' : '💬'}
           </Text>
           <Text style={styles.emptyText}>
-            {searchQuery ? 'Aucun résultat' : 'Aucune conversation'}
+            {searchQuery ? t('chat.no_results') : t('chat.no_messages')}
           </Text>
           <Text style={styles.emptySubtext}>
             {searchQuery
-              ? 'Essayez avec d\'autres mots-clés'
-              : 'Commencez à discuter avec un fournisseur en visitant un produit'}
+              ? t('chat.try_other_keywords')
+              : t('chat.start_chatting')}
           </Text>
         </View>
       ) : (

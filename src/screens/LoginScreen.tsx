@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import LanguageSelector from '../components/LanguageSelector';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -69,6 +70,11 @@ export default function LoginScreen() {
           end={{ x: 1, y: 0 }}
           style={styles.header}
         >
+          {/* Language Selector */}
+          <View style={styles.languageSelectorContainer}>
+            <LanguageSelector compact />
+          </View>
+
           <Text style={styles.logo}>🛍️</Text>
           <Text style={styles.title}>InterShop</Text>
           <Text style={styles.subtitle}>{t('auth.subtitle_login', 'Connectez-vous à votre compte')}</Text>
@@ -179,6 +185,13 @@ const styles = StyleSheet.create({
     padding: 40,
     paddingTop: 80,
     alignItems: 'center',
+    position: 'relative',
+  },
+  languageSelectorContainer: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
   },
   logo: {
     fontSize: 64,

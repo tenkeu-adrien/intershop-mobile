@@ -12,11 +12,14 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 import api from '../../src/services/api';
 import { RestaurantCardSkeleton } from '../../src/components/Skeleton';
 import { Product } from '../../src/types';
 
 export default function RestaurantsPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [restaurants, setRestaurants] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +94,7 @@ export default function RestaurantsPage() {
         <View style={styles.detailsRow}>
           <View style={styles.detailItem}>
             <Ionicons name="location-outline" size={14} color="#6b7280" />
-            <Text style={styles.detailText}>{item.location?.city || 'Non spécifié'}</Text>
+            <Text style={styles.detailText}>{item.location?.city || t('restaurants.not_specified')}</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.priceRange}>{item.restaurantData?.priceRange || '€€'}</Text>
@@ -113,16 +116,19 @@ export default function RestaurantsPage() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
+        <LinearGradient
+          colors={['#F97316', '#EA580C']}
+          style={styles.header}
+        >
           <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#111827" />
+            <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
-            <Ionicons name="restaurant" size={24} color="#f97316" />
-            <Text style={styles.headerTitle}>Restaurants</Text>
+            <Ionicons name="restaurant" size={24} color="white" />
+            <Text style={styles.headerTitle}>{t('restaurants.title')}</Text>
           </View>
           <View style={styles.headerButton} />
-        </View>
+        </LinearGradient>
         <View style={styles.loadingContainer}>
           {Array.from({ length: 4 }).map((_, index) => (
             <RestaurantCardSkeleton key={index} />
@@ -135,16 +141,19 @@ export default function RestaurantsPage() {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <LinearGradient
+        colors={['#F97316', '#EA580C']}
+        style={styles.header}
+      >
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Ionicons name="restaurant" size={24} color="#f97316" />
-          <Text style={styles.headerTitle}>Restaurants</Text>
+          <Ionicons name="restaurant" size={24} color="white" />
+          <Text style={styles.headerTitle}>{t('restaurants.title')}</Text>
         </View>
         <View style={styles.headerButton} />
-      </View>
+      </LinearGradient>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -152,7 +161,7 @@ export default function RestaurantsPage() {
           <Ionicons name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Rechercher un restaurant..."
+            placeholder={t('restaurants.search_placeholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#9ca3af"
@@ -176,7 +185,7 @@ export default function RestaurantsPage() {
       {showFilters && (
         <View style={styles.filtersContainer}>
           <View style={styles.filterRow}>
-            <Text style={styles.filterLabel}>Gamme de prix</Text>
+            <Text style={styles.filterLabel}>{t('restaurants.price_range')}</Text>
             <View style={styles.priceButtons}>
               {['', '€', '€€', '€€€', '€€€€'].map((price) => (
                 <TouchableOpacity
@@ -185,7 +194,7 @@ export default function RestaurantsPage() {
                   onPress={() => setPriceFilter(price)}
                 >
                   <Text style={[styles.priceButtonText, priceFilter === price && styles.priceButtonTextActive]}>
-                    {price || 'Tous'}
+                    {price || t('common.all')}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -210,7 +219,7 @@ export default function RestaurantsPage() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="restaurant-outline" size={64} color="#d1d5db" />
-            <Text style={styles.emptyText}>Aucun restaurant trouvé</Text>
+            <Text style={styles.emptyText}>{t('restaurants.no_restaurants')}</Text>
           </View>
         }
       />
@@ -230,9 +239,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   headerButton: {
     width: 40,
@@ -248,7 +254,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#111827',
+    color: 'white',
   },
   loadingContainer: {
     padding: 16,

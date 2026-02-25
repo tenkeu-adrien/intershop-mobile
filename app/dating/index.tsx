@@ -13,11 +13,14 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 import { DatingProfile } from '../../src/types/dating';
 import api from '../../src/services/api';
 import { DatingCardSkeleton } from '../../src/components/Skeleton';
 
 export default function DatingPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [profiles, setProfiles] = useState<DatingProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +95,7 @@ export default function DatingPage() {
         <View style={styles.locationContainer}>
           <Ionicons name="location-outline" size={14} color="#6b7280" />
           <Text style={styles.locationText}>
-            {item.location?.city || 'Non spécifié'}
+            {item.location?.city || t('dating.not_specified')}
           </Text>
         </View>
         <Text style={styles.description} numberOfLines={2}>
@@ -114,16 +117,16 @@ export default function DatingPage() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
+        <LinearGradient colors={['#EC4899', '#DB2777']} style={styles.header}>
           <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#111827" />
+            <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
-            <Ionicons name="heart" size={24} color="#ec4899" />
-            <Text style={styles.headerTitle}>Rencontres</Text>
+            <Ionicons name="heart" size={24} color="white" />
+            <Text style={styles.headerTitle}>{t('dating.title')}</Text>
           </View>
           <View style={styles.headerButton} />
-        </View>
+        </LinearGradient>
         <View style={styles.listContainer}>
           <View style={styles.columnWrapper}>
             <DatingCardSkeleton />
@@ -140,62 +143,53 @@ export default function DatingPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
+      <LinearGradient colors={['#EC4899', '#DB2777']} style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Ionicons name="heart" size={24} color="#ec4899" />
-          <Text style={styles.headerTitle}>Rencontres</Text>
+          <Ionicons name="heart" size={24} color="white" />
+          <Text style={styles.headerTitle}>{t('dating.title')}</Text>
         </View>
         <View style={styles.headerButton} />
-      </View>
+      </LinearGradient>
 
-      {/* Privacy Notice */}
       <View style={styles.privacyNotice}>
         <Ionicons name="shield-checkmark" size={24} color="#3b82f6" />
         <View style={styles.privacyTextContainer}>
-          <Text style={styles.privacyTitle}>Protection de la vie privée</Text>
-          <Text style={styles.privacyText}>
-            Les coordonnées ne sont pas affichées publiquement. Contactez l'intermédiaire pour plus d'infos.
-          </Text>
+          <Text style={styles.privacyTitle}>{t('dating.privacy_title')}</Text>
+          <Text style={styles.privacyText}>{t('dating.privacy_text')}</Text>
         </View>
       </View>
 
-      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
           <Ionicons name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Rechercher un profil..."
+            placeholder={t('dating.search_placeholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#9ca3af"
           />
         </View>
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setShowFilters(!showFilters)}
-        >
+        <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilters(!showFilters)}>
           <Ionicons name="options" size={20} color="#374151" />
         </TouchableOpacity>
       </View>
 
-      {/* Filters */}
       {showFilters && (
         <View style={styles.filtersContainer}>
           <View style={styles.filterRow}>
             <View style={styles.filterItem}>
-              <Text style={styles.filterLabel}>Genre</Text>
+              <Text style={styles.filterLabel}>{t('dating.gender')}</Text>
               <View style={styles.genderButtons}>
                 <TouchableOpacity
                   style={[styles.genderButton, genderFilter === '' && styles.genderButtonActive]}
                   onPress={() => setGenderFilter('')}
                 >
                   <Text style={[styles.genderButtonText, genderFilter === '' && styles.genderButtonTextActive]}>
-                    Tous
+                    {t('common.all')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -203,7 +197,7 @@ export default function DatingPage() {
                   onPress={() => setGenderFilter('homme')}
                 >
                   <Text style={[styles.genderButtonText, genderFilter === 'homme' && styles.genderButtonTextActive]}>
-                    Homme
+                    {t('dating.male')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -211,7 +205,7 @@ export default function DatingPage() {
                   onPress={() => setGenderFilter('femme')}
                 >
                   <Text style={[styles.genderButtonText, genderFilter === 'femme' && styles.genderButtonTextActive]}>
-                    Femme
+                    {t('dating.female')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -219,13 +213,12 @@ export default function DatingPage() {
           </View>
           <View style={styles.filterRow}>
             <View style={styles.filterItem}>
-              <Text style={styles.filterLabel}>Âge: {minAge} - {maxAge}</Text>
+              <Text style={styles.filterLabel}>{t('dating.age_range', { min: minAge, max: maxAge })}</Text>
             </View>
           </View>
         </View>
       )}
 
-      {/* Profiles List */}
       <FlatList
         data={filteredProfiles}
         renderItem={renderProfile}
@@ -233,17 +226,11 @@ export default function DatingPage() {
         contentContainerStyle={styles.listContainer}
         numColumns={2}
         columnWrapperStyle={styles.columnWrapper}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#ec4899']}
-          />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#ec4899']} />}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="heart-dislike" size={64} color="#d1d5db" />
-            <Text style={styles.emptyText}>Aucun profil trouvé</Text>
+            <Text style={styles.emptyText}>{t('dating.no_profiles')}</Text>
           </View>
         }
       />
@@ -271,12 +258,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   headerButton: {
     width: 40,
@@ -292,7 +276,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#111827',
+    color: 'white',
   },
   privacyNotice: {
     backgroundColor: '#eff6ff',
